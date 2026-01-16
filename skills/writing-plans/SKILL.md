@@ -17,6 +17,8 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 
+**REQUIRED SUB-SKILL:** Before ExitPlanMode, apply superpowers:rule-of-five to the plan document (Draft→Correctness→Clarity→Edge Cases→Excellence). Plans are significant artifacts that benefit from 5-pass review.
+
 ## Bite-Sized Task Granularity
 
 **Each step is one action (2-5 minutes):**
@@ -33,7 +35,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** After human approval, use plan2beads to convert this plan to a beads epic, then use `superpowers:subagent-driven-development` for parallel execution.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -46,9 +48,14 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 ## Task Structure
 
+**CRITICAL: Every task MUST include `Depends on:` and `Files:` sections.** These enable:
+- Safe parallel execution (tasks with no dependency conflicts)
+- File conflict detection (tasks modifying same files can't run in parallel)
+
 ```markdown
 ### Task N: [Component Name]
 
+**Depends on:** Task M, Task P | None
 **Files:**
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
@@ -87,30 +94,115 @@ git commit -m "feat: add specific feature"
 ```
 ```
 
+## Identifying Dependencies
+
+When planning tasks, explicitly identify what each task needs:
+
+| Dependency Type | Example | How to Express |
+|-----------------|---------|----------------|
+| Data model | Service needs User entity | `Depends on: Task 1 (User model)` |
+| Import/export | Route imports service | `Depends on: Task 2 (Auth service)` |
+| Config | Feature needs env vars | `Depends on: Task 0 (Config setup)` |
+| Schema | Migration before model | `Depends on: Task 1 (DB migration)` |
+| None | Independent task | `Depends on: None` |
+
+**Rules:**
+- **Always explicit:** Every task MUST have `Depends on:` line
+- **Be specific:** List exact task numbers, not "previous tasks"
+- **Minimize dependencies:** Only list what's truly required
+- **Enable parallelism:** Tasks with `Depends on: None` can run in parallel
+
+**Example dependency structure:**
+```
+Task 1: User Model           Depends on: None              ← READY
+Task 2: JWT Utils            Depends on: None              ← READY (parallel with 1)
+Task 3: Auth Service         Depends on: Task 1            ← Blocked by 1 only
+Task 4: Login Endpoint       Depends on: Task 2, Task 3    ← Blocked by 2 AND 3
+Task 5: Logout Endpoint      Depends on: Task 3            ← Blocked by 3 only
+```
+
+This enables: Tasks 1 & 2 parallel → Task 3 → Tasks 4 & 5 parallel
+
+## File List Requirements
+
+The `Files:` section enables safe parallel execution by detecting conflicts.
+
+**Format:**
+```markdown
+**Files:**
+- Create: `apps/api/src/models/user.model.ts`
+- Modify: `apps/api/src/models/index.ts:15-20`
+- Test: `apps/api/src/__tests__/models/user.test.ts`
+```
+
+**Rules:**
+- List ALL files the task will touch
+- Be specific about line ranges for modifications when known
+- Include test files
+- If two tasks modify the same file, they CANNOT run in parallel
+
 ## Remember
 - Exact file paths always
 - Complete code in plan (not "add validation")
 - Exact commands with expected output
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
+- **Every task needs `Depends on:` and `Files:`**
+- **Apply superpowers:rule-of-five before finalizing plan**
 
 ## Execution Handoff
 
-After saving the plan, offer execution choice:
+**The full workflow:**
+```
+writing-plans → Human Review → plan2beads → bd verify → Execute
+                    ↓                                      ↓
+               Approve/Edit                    superpowers:subagent-driven-development
+                                                       OR
+                                               superpowers:executing-plans
+```
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+After saving the plan and human approval:
 
-**1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
+**Step 1: Convert to Beads**
 
-**2. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
+**REQUIRED:** Use plan2beads to convert the approved plan to a beads epic with properly linked issues:
+
+```
+/plan2beads docs/plans/YYYY-MM-DD-feature-name.md
+```
+
+This creates:
+- Epic for the feature
+- Child issues for each task
+- Dependencies between issues (from `Depends on:` lines)
+- File lists preserved in issue descriptions
+
+**Step 2: Verify Structure**
+
+After conversion, verify:
+```bash
+bd ready          # Shows tasks with no blockers
+bd blocked        # Shows tasks waiting on dependencies
+bd graph <epic>   # Visual dependency graph
+```
+
+**Step 3: Choose Execution Approach**
+
+**"Plan converted to beads epic. Two execution options:**
+
+**1. Subagent-Driven (this session)** - Parallel dispatch of independent tasks, review between completions, maximum throughput
+
+**2. Parallel Session (separate)** - Open new session, batch execution with checkpoints
 
 **Which approach?"**
 
 **If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Stay in this session
-- Fresh subagent per task + code review
+- **REQUIRED SUB-SKILL:** Use `superpowers:subagent-driven-development`
+- Reads from beads epic (not markdown)
+- Parallel dispatch of non-conflicting tasks
+- Dependency-aware execution
 
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
-- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+- **REQUIRED SUB-SKILL:** New session uses `superpowers:executing-plans`
+- Reads from beads epic (not markdown)

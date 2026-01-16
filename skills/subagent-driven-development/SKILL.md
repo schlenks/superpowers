@@ -5,35 +5,46 @@ description: Use when executing implementation plans with independent tasks in t
 
 # Subagent-Driven Development
 
-Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
+Execute beads epic by dispatching parallel subagents for independent issues, with two-stage review after each completion.
 
-**Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+**Core principle:** Parallel dispatch of independent tasks + dependency awareness + two-stage review = high quality, maximum throughput
 
 ## When to Use
 
 ```dot
 digraph when_to_use {
-    "Have implementation plan?" [shape=diamond];
-    "Tasks mostly independent?" [shape=diamond];
+    "Have beads epic?" [shape=diamond];
+    "Tasks have dependencies set?" [shape=diamond];
     "Stay in this session?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "executing-plans" [shape=box];
-    "Manual execution or brainstorm first" [shape=box];
+    "Run plan2beads first" [shape=box];
 
-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
-    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
-    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
+    "Have beads epic?" -> "Tasks have dependencies set?" [label="yes"];
+    "Have beads epic?" -> "Run plan2beads first" [label="no"];
+    "Tasks have dependencies set?" -> "Stay in this session?" [label="yes"];
+    "Tasks have dependencies set?" -> "Run plan2beads first" [label="no deps"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
     "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
 }
 ```
 
-**vs. Executing Plans (parallel session):**
-- Same session (no context switch)
-- Fresh subagent per task (no context pollution)
-- Two-stage review after each task: spec compliance first, then code quality
-- Faster iteration (no human-in-loop between tasks)
+**Announce at start:** "I'm using Subagent-Driven Development to execute beads epic [epic-id]."
+
+**Prerequisites:**
+- Beads epic exists (created via plan2beads)
+- Dependencies are set (`bd blocked` shows expected blockers)
+- Each issue has `## Files` section in description
+
+## Key Terms
+
+| Term | Meaning |
+|------|---------|
+| **Dispatch** | Use the `Task` tool to spawn a subagent with a specific prompt |
+| **Wave** | A batch of issues dispatched together (all have no dependency conflicts) |
+| **bd** | Beads CLI - git-backed issue tracker (`bd ready`, `bd show`, `bd close`, etc.) |
+| **Ready** | Issue has no blockers - all its dependencies are closed |
+| **Blocked** | Issue is waiting for one or more dependencies to close |
 
 ## The Process
 
@@ -41,200 +52,268 @@ digraph when_to_use {
 digraph process {
     rankdir=TB;
 
-    subgraph cluster_per_task {
-        label="Per Task";
-        "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
-        "Implementer subagent asks questions?" [shape=diamond];
-        "Answer questions, provide context" [shape=box];
-        "Implementer subagent implements, tests, commits, self-reviews" [shape=box];
-        "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [shape=box];
-        "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
-        "Implementer subagent fixes spec gaps" [shape=box];
-        "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
-        "Code quality reviewer subagent approves?" [shape=diamond];
-        "Implementer subagent fixes quality issues" [shape=box];
-        "Mark task complete in TodoWrite" [shape=box];
-    }
+    "Load epic: bd show <epic-id>" [shape=box];
+    "Get child IDs from epic" [shape=box];
+    "ready = bd ready ∩ epic children" [shape=box];
+    "Any ready issues?" [shape=diamond];
+    "Filter file conflicts among ready" [shape=box];
+    "Dispatch implementers IN PARALLEL" [shape=box];
+    "Wait for ANY completion" [shape=box];
+    "Review completed (spec then quality)" [shape=box];
+    "All reviews pass?" [shape=diamond];
+    "bd close <id>" [shape=box];
+    "Fix issues, re-review" [shape=box];
+    "All issues in epic closed?" [shape=diamond];
+    "Final code review of entire epic" [shape=box];
+    "superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
-    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
-    "More tasks remain?" [shape=diamond];
-    "Dispatch final code reviewer subagent for entire implementation" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
-
-    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
-    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
-    "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
-    "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
-    "Implementer subagent asks questions?" -> "Implementer subagent implements, tests, commits, self-reviews" [label="no"];
-    "Implementer subagent implements, tests, commits, self-reviews" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)";
-    "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" -> "Spec reviewer subagent confirms code matches spec?";
-    "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
-    "Implementer subagent fixes spec gaps" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
-    "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
-    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer subagent approves?";
-    "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
-    "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
-    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
-    "Mark task complete in TodoWrite" -> "More tasks remain?";
-    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
+    "Load epic: bd show <epic-id>" -> "Get child IDs from epic";
+    "Get child IDs from epic" -> "ready = bd ready ∩ epic children";
+    "ready = bd ready ∩ epic children" -> "Any ready issues?";
+    "Any ready issues?" -> "Filter file conflicts among ready" [label="yes"];
+    "Any ready issues?" -> "Wait for ANY completion" [label="no - waiting on in_progress"];
+    "Filter file conflicts among ready" -> "Dispatch implementers IN PARALLEL";
+    "Dispatch implementers IN PARALLEL" -> "Wait for ANY completion";
+    "Wait for ANY completion" -> "Review completed (spec then quality)";
+    "Review completed (spec then quality)" -> "All reviews pass?";
+    "All reviews pass?" -> "bd close <id>" [label="yes"];
+    "All reviews pass?" -> "Fix issues, re-review" [label="no"];
+    "Fix issues, re-review" -> "Review completed (spec then quality)";
+    "bd close <id>" -> "All issues in epic closed?";
+    "All issues in epic closed?" -> "ready = bd ready ∩ epic children" [label="no - check newly unblocked"];
+    "All issues in epic closed?" -> "Final code review of entire epic" [label="yes"];
+    "Final code review of entire epic" -> "superpowers:finishing-a-development-branch";
 }
+```
+
+## Filtering to Current Epic
+
+`bd ready` returns ALL ready issues across all epics. Filter to current epic:
+
+```bash
+# Get epic's child issue IDs
+bd show <epic-id>  # Lists children like hub-abc.1, hub-abc.2, etc.
+
+# Only dispatch issues that are BOTH:
+# 1. In bd ready output
+# 2. Children of current epic
+```
+
+**Example:**
+```
+bd ready shows: hub-abc.1, hub-abc.2, hub-xyz.1
+Current epic: hub-abc
+Filter to: hub-abc.1, hub-abc.2 (ignore hub-xyz.1)
+```
+
+## File Conflict Detection
+
+Before parallel dispatch, check for file overlap:
+
+**Extract files from each issue:**
+```
+Issue hub-abc.1 files: [user.model.ts, models/index.ts]
+Issue hub-abc.2 files: [jwt.utils.ts, utils/index.ts]
+Issue hub-abc.3 files: [auth.service.ts, models/index.ts]  ← CONFLICT with .1!
+```
+
+**Parallelizable:** Issues with NO file overlap
+- hub-abc.1 and hub-abc.2 → Safe to parallelize
+- hub-abc.1 and hub-abc.3 → NOT safe (both touch models/index.ts)
+
+**Algorithm:**
+1. Get all ready issues from `bd ready`
+2. **Filter to current epic's children only**
+3. Parse `## Files` section from each issue description
+4. Build file → issue mapping
+5. If file appears in multiple ready issues:
+   - **Dispatch lowest-numbered first** (e.g., hub-abc.1 before hub-abc.3)
+   - **Defer conflicting issues to next wave** (they stay ready, dispatch after current wave completes)
+6. Dispatch all non-conflicting issues in parallel
+
+**If `## Files` section is missing:** Treat as conflicting with ALL other issues (cannot parallelize, must dispatch alone).
+
+**Why defer instead of block?** Deferred issues aren't blocked by dependencies—they're just waiting to avoid merge conflicts. Once the current wave completes, re-check `bd ready` and they'll be dispatchable.
+
+## Parallel Dispatch
+
+**Key difference from sequential:**
+
+```
+SEQUENTIAL (old):
+  for issue in ready:
+    dispatch(issue)
+    wait_for_completion()
+    review()
+
+PARALLEL (new):
+  parallelizable = filter_file_conflicts(ready)
+  for issue in parallelizable:
+    bd update <id> --status=in_progress
+    dispatch_async(issue)  # Don't wait!
+
+  while any_running:
+    completed = wait_for_any()
+    review(completed)
+    if passes: bd close completed
 ```
 
 ## Prompt Templates
 
-- `./implementer-prompt.md` - Dispatch implementer subagent
+- `./implementer-prompt.md` - Dispatch implementer subagent (updated for beads)
 - `./spec-reviewer-prompt.md` - Dispatch spec compliance reviewer subagent
 - `./code-quality-reviewer-prompt.md` - Dispatch code quality reviewer subagent
 
-## Example Workflow
+## Example Workflow (Parallel)
 
 ```
-You: I'm using Subagent-Driven Development to execute this plan.
+You: I'm using Subagent-Driven Development to execute beads epic hub-abc.
 
-[Read plan file once: docs/plans/feature-plan.md]
-[Extract all 5 tasks with full text and context]
-[Create TodoWrite with all tasks]
+[Load epic: bd show hub-abc]
+[Check initial state:]
+  bd ready: hub-abc.1, hub-abc.2 (no deps)
+  bd blocked: hub-abc.3 (by .1), hub-abc.4 (by .2, .3)
 
-Task 1: Hook installation script
+Wave 1: Tasks 1 and 2 are ready, no file conflicts
 
-[Get Task 1 text and context (already extracted)]
-[Dispatch implementation subagent with full task text + context]
+[bd update hub-abc.1 --status=in_progress]
+[bd update hub-abc.2 --status=in_progress]
+[Dispatch implementer for hub-abc.1 - ASYNC]
+[Dispatch implementer for hub-abc.2 - ASYNC]
 
-Implementer: "Before I begin - should the hook be installed at user or system level?"
+... both working in parallel ...
 
-You: "User level (~/.config/superpowers/hooks/)"
-
-Implementer: "Got it. Implementing now..."
-[Later] Implementer:
-  - Implemented install-hook command
-  - Added tests, 5/5 passing
-  - Self-review: Found I missed --force flag, added it
+[hub-abc.2 completes first]
+Implementer 2:
+  - Implemented JWT utils
+  - Tests passing
   - Committed
 
-[Dispatch spec compliance reviewer]
-Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
+[Dispatch spec reviewer for hub-abc.2]
+Spec reviewer: ✅ Spec compliant
 
-[Get git SHAs, dispatch code quality reviewer]
-Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
-
-[Mark Task 1 complete]
-
-Task 2: Recovery modes
-
-[Get Task 2 text and context (already extracted)]
-[Dispatch implementation subagent with full task text + context]
-
-Implementer: [No questions, proceeds]
-Implementer:
-  - Added verify/repair modes
-  - 8/8 tests passing
-  - Self-review: All good
-  - Committed
-
-[Dispatch spec compliance reviewer]
-Spec reviewer: ❌ Issues:
-  - Missing: Progress reporting (spec says "report every 100 items")
-  - Extra: Added --json flag (not requested)
-
-[Implementer fixes issues]
-Implementer: Removed --json flag, added progress reporting
-
-[Spec reviewer reviews again]
-Spec reviewer: ✅ Spec compliant now
-
-[Dispatch code quality reviewer]
-Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
-
-[Implementer fixes]
-Implementer: Extracted PROGRESS_INTERVAL constant
-
-[Code reviewer reviews again]
+[Dispatch code quality reviewer for hub-abc.2]
 Code reviewer: ✅ Approved
 
-[Mark Task 2 complete]
+[bd close hub-abc.2]
 
-...
+[Check bd ready: still nothing new - hub-abc.4 still blocked by hub-abc.3]
 
-[After all tasks]
-[Dispatch final code-reviewer]
-Final reviewer: All requirements met, ready to merge
+[hub-abc.1 completes]
+Implementer 1:
+  - Implemented User model
+  - Tests passing
+  - Committed
+
+[Dispatch spec reviewer for hub-abc.1]
+Spec reviewer: ✅ Spec compliant
+
+[Dispatch code quality reviewer for hub-abc.1]
+Code reviewer: ✅ Approved
+
+[bd close hub-abc.1]
+
+[bd ready now shows hub-abc.3 (unblocked - was blocked by .1)]
+[bd blocked: hub-abc.4 (still waiting on .3)]
+
+Wave 2: Only Task 3 is ready
+
+[bd update hub-abc.3 --status=in_progress]
+[Dispatch implementer for hub-abc.3]
+
+[hub-abc.3 completes]
+Implementer 3:
+  - Implemented Auth service
+  - Tests passing
+  - Committed
+
+[Review passes]
+[bd close hub-abc.3]
+
+[bd ready now shows hub-abc.4 (unblocked - was blocked by .2, .3, both now closed)]
+
+Wave 3: Task 4 is ready
+
+[bd update hub-abc.4 --status=in_progress]
+[Dispatch implementer for hub-abc.4]
+
+[hub-abc.4 completes, reviews pass]
+[bd close hub-abc.4]
+
+[All issues closed]
+[Dispatch final code reviewer for entire epic]
+[Use superpowers:finishing-a-development-branch]
 
 Done!
 ```
 
 ## Advantages
 
-**vs. Manual execution:**
-- Subagents follow TDD naturally
-- Fresh context per task (no confusion)
-- Parallel-safe (subagents don't interfere)
-- Subagent can ask questions (before AND during work)
+**vs. Sequential execution:**
+- Multiple tasks execute simultaneously
+- Completion of one task immediately unblocks dependents
+- Better utilization of parallel capability
 
-**vs. Executing Plans:**
-- Same session (no handoff)
-- Continuous progress (no waiting)
-- Review checkpoints automatic
+**vs. Manual parallelism:**
+- File conflict detection prevents merge conflicts
+- Dependency-aware (only dispatches ready tasks)
+- Automatic unblocking as tasks complete
 
-**Efficiency gains:**
-- No file reading overhead (controller provides full text)
-- Controller curates exactly what context is needed
-- Subagent gets complete information upfront
-- Questions surfaced before work begins (not after)
-
-**Quality gates:**
-- Self-review catches issues before handoff
+**Quality gates (unchanged):**
 - Two-stage review: spec compliance, then code quality
-- Review loops ensure fixes actually work
-- Spec compliance prevents over/under-building
-- Code quality ensures implementation is well-built
-
-**Cost:**
-- More subagent invocations (implementer + 2 reviewers per task)
-- Controller does more prep work (extracting all tasks upfront)
-- Review loops add iterations
-- But catches issues early (cheaper than debugging later)
+- Review loops ensure fixes work
+- Final review of entire implementation
 
 ## Red Flags
 
 **Never:**
+- Dispatch issue that's not in `bd ready` (blocked by dependency)
+- Dispatch issue from different epic (filter to current epic!)
+- Dispatch two issues that modify same file (file conflict)
+- Skip `bd update --status=in_progress` before dispatch
+- Skip `bd close` after successful review (blocks dependents!)
 - Skip reviews (spec compliance OR code quality)
-- Proceed with unfixed issues
-- Dispatch multiple implementation subagents in parallel (conflicts)
-- Make subagent read plan file (provide full text instead)
-- Skip scene-setting context (subagent needs to understand where task fits)
-- Ignore subagent questions (answer before letting them proceed)
-- Accept "close enough" on spec compliance (spec reviewer found issues = not done)
-- Skip review loops (reviewer found issues = implementer fixes = review again)
-- Let implementer self-review replace actual review (both are needed)
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to next task while either review has open issues
+- Start code quality review before spec compliance passes
 
-**If subagent asks questions:**
-- Answer clearly and completely
-- Provide additional context if needed
-- Don't rush them into implementation
+**Deadlock detection:**
+If `bd ready` shows nothing for your epic BUT issues remain open, check for:
+- Circular dependencies (A blocks B, B blocks A)
+- Missing dependency closure (forgot to `bd close` a completed issue)
+- Run `bd blocked` to see what's waiting on what
+
+**Always:**
+- Check `bd ready` before each dispatch wave
+- Parse and compare file lists for conflicts
+- Use `bd close` immediately after review passes (unblocks dependents)
+- Re-check `bd ready` after each close (may have unblocked new tasks)
 
 **If reviewer finds issues:**
-- Implementer (same subagent) fixes them
-- Reviewer reviews again
+- Implementer fixes them
+- Reviewer re-reviews
 - Repeat until approved
-- Don't skip the re-review
+- Only then `bd close`
 
-**If subagent fails task:**
-- Dispatch fix subagent with specific instructions
-- Don't try to fix manually (context pollution)
+**If subagent fails or crashes:**
+- The issue remains `in_progress`
+- Dispatch a new implementer subagent for the same issue
+- Provide context: "Previous attempt failed - starting fresh"
+- Don't try to salvage partial work—start clean
+
+**If bd commands fail:**
+- Check if beads is initialized: `bd doctor`
+- Check git status: `git status`
+- If persistent errors, stop and ask human for help
 
 ## Integration
 
 **Required workflow skills:**
-- **superpowers:writing-plans** - Creates the plan this skill executes
-- **superpowers:requesting-code-review** - Code review template for reviewer subagents
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **plan2beads** - Converts plan to beads epic (must run first)
+- **superpowers:requesting-code-review** - Code review template
+- **superpowers:finishing-a-development-branch** - Complete after all tasks
 
 **Subagents should use:**
-- **superpowers:test-driven-development** - Subagents follow TDD for each task
+- **superpowers:test-driven-development** - TDD for each task
+- **superpowers:rule-of-five** - Apply 5-pass review to significant artifacts (>50 lines)
 
 **Alternative workflow:**
-- **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+- **`superpowers:executing-plans`** - For parallel session (also reads from beads)

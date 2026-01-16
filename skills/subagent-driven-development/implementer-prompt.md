@@ -1,49 +1,73 @@
 # Implementer Subagent Prompt Template
 
-Use this template when dispatching an implementer subagent.
+Use this template when dispatching an implementer subagent for a beads issue.
 
 ```
 Task tool (general-purpose):
-  description: "Implement Task N: [task name]"
+  description: "Implement Issue: [issue-id] [issue title]"
   prompt: |
-    You are implementing Task N: [task name]
+    You are implementing beads issue: [issue-id]
 
-    ## Task Description
+    ## Issue Details
 
-    [FULL TEXT of task from plan - paste it here, don't make subagent read file]
+    [FULL CONTENT from `bd show <issue-id>` - paste it here, don't make subagent run bd]
+
+    ## Files You Own
+
+    You are ONLY allowed to modify these files:
+    [List from issue's ## Files section]
+
+    **CRITICAL:** DO NOT modify any files outside this list.
+    If you discover you need to modify other files, STOP and ask.
+    This constraint enables safe parallel execution with other subagents.
+
+    ## Dependencies (Already Complete)
+
+    These issues have been completed. You can use their outputs:
+    [List completed dependency issues, if any]
 
     ## Context
 
-    [Scene-setting: where this fits, dependencies, architectural context]
+    [Scene-setting: where this fits in the epic, architectural context]
 
     ## Before You Begin
 
     If you have questions about:
     - The requirements or acceptance criteria
     - The approach or implementation strategy
+    - Why you're limited to certain files
     - Dependencies or assumptions
-    - Anything unclear in the task description
+    - Anything unclear in the issue description
 
     **Ask them now.** Raise any concerns before starting work.
 
     ## Your Job
 
     Once you're clear on requirements:
-    1. Implement exactly what the task specifies
-    2. Write tests (following TDD if task says to)
-    3. Verify implementation works
-    4. Commit your work
-    5. Self-review (see below)
-    6. Report back
+    1. Implement exactly what the issue specifies
+    2. ONLY modify files in your allowed list
+    3. Write tests (following TDD if issue says to)
+    4. Verify implementation works
+    5. Commit your work (use conventional commit format: `feat:`, `fix:`, `refactor:`, etc.)
+    6. For artifacts >50 lines: Apply rule-of-five passes (Draft, Correctness, Clarity, Edge Cases, Excellence)
+    7. Self-review (see below)
+    8. Report back
 
     Work from: [directory]
 
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
+    **If you need files outside your allowed list:**
+    STOP immediately and ask. Do not modify them. This would conflict with parallel work.
+
     ## Before Reporting Back: Self-Review
 
     Review your work with fresh eyes. Ask yourself:
+
+    **File Scope:**
+    - Did I ONLY modify files in my allowed list?
+    - If I touched other files, I need to report this as an issue
 
     **Completeness:**
     - Did I fully implement everything in the spec?
@@ -54,6 +78,7 @@ Task tool (general-purpose):
     - Is this my best work?
     - Are names clear and accurate (match what things do, not how they work)?
     - Is the code clean and maintainable?
+    - For >50 lines: Did I apply rule-of-five passes?
 
     **Discipline:**
     - Did I avoid overbuilding (YAGNI)?
@@ -71,8 +96,66 @@ Task tool (general-purpose):
 
     When done, report:
     - What you implemented
+    - **Files actually modified** (MUST match allowed list)
     - What you tested and test results
-    - Files changed
     - Self-review findings (if any)
+    - Rule-of-five passes applied (if artifact >50 lines)
     - Any issues or concerns
+    - **File scope violations** (if you had to modify files outside allowed list - explain why)
+```
+
+## Example Dispatch
+
+```
+Task tool (general-purpose):
+  description: "Implement Issue: hub-abc.3 Auth Service"
+  prompt: |
+    You are implementing beads issue: hub-abc.3
+
+    ## Issue Details
+
+    Title: Auth Service
+    Status: in_progress
+    Priority: 2
+
+    ## Files
+    - Create: `apps/api/src/services/auth.service.ts`
+    - Modify: `apps/api/src/services/index.ts`
+    - Test: `apps/api/src/__tests__/services/auth.service.test.ts`
+
+    ## Implementation Steps
+    **Step 1: Write the failing test**
+    ```typescript
+    describe('AuthService', () => {
+      it('should validate user credentials', async () => {
+        // ...
+      })
+    })
+    ```
+
+    **Step 2: Run test to verify it fails**
+    Run: `pnpm api:test -- --grep "AuthService"`
+    Expected: FAIL
+
+    ...
+
+    ## Files You Own
+
+    You are ONLY allowed to modify these files:
+    - apps/api/src/services/auth.service.ts (Create)
+    - apps/api/src/services/index.ts (Modify)
+    - apps/api/src/__tests__/services/auth.service.test.ts (Test)
+
+    **CRITICAL:** DO NOT modify any files outside this list.
+
+    ## Dependencies (Already Complete)
+
+    - hub-abc.1: User Model (apps/api/src/models/user.model.ts exists)
+
+    ## Context
+
+    This is part of the Auth System epic. The User model is complete.
+    This service will be used by the Login endpoint (hub-abc.4).
+
+    ...
 ```
