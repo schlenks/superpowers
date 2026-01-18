@@ -192,5 +192,5 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- **Issues**: https://github.com/obra/superpowers/issues
-- **Marketplace**: https://github.com/obra/superpowers-marketplace
+- **Issues**: https://github.com/schlenks/superpowers/issues
+- **Upstream**: https://github.com/obra/superpowers

@@ -1,5 +1,39 @@
 # Superpowers Release Notes
 
+## v4.0.4 (2026-01-18) - TBL Fork
+
+### Fork Changes
+
+This version represents the ToursByLocals fork with customizations for beads-based workflow.
+
+**New: rule-of-five skill**
+
+5-pass quality review for significant artifacts (>50 lines):
+1. Draft - Get it working
+2. Correctness - Verify logic and edge cases
+3. Clarity - Improve readability
+4. Edge Cases - Handle failures gracefully
+5. Excellence - Polish for production
+
+**New: plan2beads command**
+
+Converts markdown implementation plans to beads epics with proper dependencies. Parses `Depends on:` and `Files:` sections from plan tasks.
+
+**Beads integration across skills**
+
+- `writing-plans` - Tasks include `Depends on:` and `Files:` sections for dependency tracking
+- `executing-plans` - Uses `bd ready`, `bd blocked`, `bd close` for dependency-aware batch execution
+- `subagent-driven-development` - Wave-based parallel dispatch with file conflict detection
+
+**Rule-of-five as required gate**
+
+`executing-plans` now requires rule-of-five review before any commit with >50 lines changed. Not optional.
+
+**Metadata updates**
+
+- Repository references updated to `schlenks/superpowers` fork
+- README updated with TBL Customizations section
+
 ## v4.0.3 (2025-12-26)
 
 ### Improvements
