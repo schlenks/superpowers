@@ -19,6 +19,24 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **REQUIRED:** Before ExitPlanMode, run the Plan Verification Checklist (scope/accuracy), then apply rule-of-five (Draft→Correctness→Clarity→Edge Cases→Excellence). Verify *what* before polishing *how*.
 
+## Mandatory Todos (Enforcement)
+
+**Create these todos at plan start.** You cannot call ExitPlanMode with pending items:
+
+```typescript
+todos: [
+  { content: "Write draft plan", activeForm: "Writing draft plan", status: "in_progress" },
+  { content: "Plan Verification Checklist", activeForm: "Running verification checklist", status: "pending" },
+  { content: "Rule-of-five: Draft pass", activeForm: "Draft pass", status: "pending" },
+  { content: "Rule-of-five: Correctness pass", activeForm: "Correctness pass", status: "pending" },
+  { content: "Rule-of-five: Clarity pass", activeForm: "Clarity pass", status: "pending" },
+  { content: "Rule-of-five: Edge Cases pass", activeForm: "Edge cases pass", status: "pending" },
+  { content: "Rule-of-five: Excellence pass", activeForm: "Excellence pass", status: "pending" },
+]
+```
+
+**These todos make verification visible and trackable.** Mark each complete as you finish it.
+
 ## Bite-Sized Task Granularity
 
 **Each step is one action (2-5 minutes):**
@@ -156,15 +174,67 @@ The `Files:` section enables safe parallel execution by detecting conflicts.
 
 **Why before rule-of-five:** This checklist verifies *what* you're building is correct. Rule-of-five then polishes *how* it's written. Scope errors caught here save wasted polish on tasks that get deleted.
 
+## Required Announcements
+
+**Announce each verification phase explicitly.** This creates visible audit trail:
+
+**Before checklist (mark "Plan Verification Checklist" todo in_progress):**
+```
+Running Plan Verification Checklist...
+- Complete: ✓/✗ [explanation]
+- Accurate: ✓/✗ [files verified via Glob]
+- Commands valid: ✓/✗ [tested]
+- YAGNI: ✓/✗ [explanation]
+- Minimal: ✓/✗ [explanation]
+- Not over-engineered: ✓/✗ [explanation]
+```
+
+**Before each rule-of-five pass (mark corresponding todo in_progress):**
+```
+Rule-of-five pass N: [Pass Name]
+Changes made: [list specific changes or "none needed"]
+```
+
 ## Remember
 - Exact file paths always
 - Complete code in plan (not "add validation")
 - Exact commands with expected output
-- Reference relevant skills with @ syntax
+- Reference relevant skills by name (e.g., `superpowers:skill-name`)
 - DRY, YAGNI, TDD, frequent commits
 - **Every task needs `Depends on:` and `Files:`**
 - **Run Plan Verification Checklist before rule-of-five**
 - **Apply rule-of-five before finalizing plan**
+
+## Plan Document Footer (Required)
+
+**Every plan MUST end with this Verification Record.** Plans without it will be rejected:
+
+```markdown
+---
+
+## Verification Record
+
+### Plan Verification Checklist
+| Check | Status | Notes |
+|-------|--------|-------|
+| Complete | ✓/✗ | [explanation] |
+| Accurate | ✓/✗ | [paths verified via Glob] |
+| Commands valid | ✓/✗ | [commands tested] |
+| YAGNI | ✓/✗ | [tasks removed if any] |
+| Minimal | ✓/✗ | [tasks combined if any] |
+| Not over-engineered | ✓/✗ | [simplifications made if any] |
+
+### Rule-of-Five Passes
+| Pass | Changes Made |
+|------|--------------|
+| Draft | [initial structure, N tasks] |
+| Correctness | [specific fixes or "none needed"] |
+| Clarity | [specific improvements or "none needed"] |
+| Edge Cases | [additions or "none needed"] |
+| Excellence | [polish or "none needed"] |
+```
+
+**This record proves verification happened and documents what changed.**
 
 ## Execution Handoff
 

@@ -1,5 +1,60 @@
 # Superpowers Release Notes
 
+## v4.0.6 (2026-01-19) - TBL Fork
+
+### Improvements
+
+**Enhanced plan verification enforcement**
+
+Added enforcement mechanisms to ensure Plan Verification Checklist and rule-of-five are ALWAYS applied during plan writing and at epic completion.
+
+**writing-plans skill:**
+- Added "Mandatory Todos (Enforcement)" section - 7 todos created at plan start that must be completed before ExitPlanMode
+- Added "Required Announcements" section - structured format for announcing verification phases with audit trail
+- Added "Plan Document Footer (Required)" section - every plan must end with a Verification Record documenting checklist results and rule-of-five changes
+- Fixed skill reference syntax (changed @ syntax to backtick format per writing-skills guidelines)
+
+**plan2beads command:**
+- Added "4f. Verification Gate Task (Required)" - every epic now gets a final gate task that depends on ALL other tasks
+- Gate acceptance criteria enforces: tests pass, build succeeds, no TypeScript errors, invoke /rule-of-five, invoke /requesting-code-review, re-run Plan Verification Checklist, update docs
+- Updated Step 6 results display to include gate task and completion workflow
+
+**Why this matters:** Previously, verification was marked "REQUIRED" but nothing enforced it. Now:
+1. TodoWrite tracks verification during planning (visible, can't skip)
+2. Plan document embeds verification record (audit trail)
+3. Gate task blocks epic completion until verification done
+
+**New: beads skill**
+
+Comprehensive reference for AI agents using the beads (bd) CLI:
+- Permission avoidance rules (semicolons, multi-line content, temp files)
+- Command quick reference (issue operations, queries, maintenance)
+- Dependency management (types, validation, deadlock detection)
+- Workflow patterns (autonomous work loop, session end protocol)
+- Troubleshooting (sync, worktrees, daemon issues)
+
+Cross-references added to:
+- `plan2beads` - REQUIRED BACKGROUND
+- `executing-plans` - REQUIRED BACKGROUND
+- `subagent-driven-development` - REQUIRED BACKGROUND
+
+## v4.0.5 (2026-01-19) - TBL Fork
+
+### Fixes
+
+**Fixed plan2beads acceptance criteria guidance**
+
+The `--acceptance` flag documentation incorrectly recommended using semicolons as delimiters. Semicolons with surrounding spaces (` ; `) trigger Claude Code's permission system deny rules, causing approval prompts even when the semicolon is inside a quoted string argument.
+
+**Corrected guidance:**
+- Never use semicolons in `--acceptance`
+- Use commas: `--acceptance "Criterion 1, Criterion 2, Criterion 3"`
+- Or use ANSI-C quoting with newlines: `--acceptance $'Criterion 1\nCriterion 2\nCriterion 3'`
+
+The newline syntax displays better in `bd show` output, with each criterion on its own line.
+
+**Root cause:** Claude Code's permission pattern matching operates on the raw command string before shell parsing, so quoted semicolons still match the ` ; ` deny pattern.
+
 ## v4.0.4 (2026-01-18) - TBL Fork
 
 ### Fork Changes

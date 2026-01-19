@@ -9,6 +9,8 @@ Execute beads epic by dispatching parallel subagents for independent issues, wit
 
 **Core principle:** Parallel dispatch of independent tasks + dependency awareness + two-stage review = high quality, maximum throughput
 
+**REQUIRED BACKGROUND:** You MUST understand `superpowers:beads` before using this skill. That skill covers bd CLI usage, permission avoidance, and dependency management.
+
 ## When to Use
 
 ```dot

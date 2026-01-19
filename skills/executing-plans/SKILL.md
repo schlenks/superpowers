@@ -13,11 +13,11 @@ Load beads epic, review critically, execute tasks in dependency-aware batches, r
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
+**REQUIRED BACKGROUND:** You MUST understand `superpowers:beads` before using this skill. That skill covers bd CLI usage, permission avoidance, and dependency management.
+
 **Prerequisites:**
 - Beads epic exists (created via plan2beads)
 - Dependencies are set (`bd blocked` shows expected blockers)
-
-**Key tool:** `bd` is the Beads CLI - a git-backed issue tracker. Key commands: `bd ready` (unblocked issues), `bd blocked` (waiting issues), `bd show` (details), `bd close` (mark done).
 
 ## The Process
 
