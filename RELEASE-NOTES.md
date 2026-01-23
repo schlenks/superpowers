@@ -10,7 +10,7 @@ Integrated Claude Code's native task tools (TaskCreate, TaskGet, TaskUpdate, Tas
 
 **12 skills + 1 command now enforce quality gates with task dependencies:**
 
-| Skill | Tasks | Purpose |
+| Skill/Command | Tasks | Purpose |
 |-------|-------|---------|
 | systematic-debugging | 4 phase tasks | Enforce "NO FIXES BEFORE PHASE 1" iron law |
 | writing-skills | 3 RED/GREEN/REFACTOR tasks | Enforce "NO SKILL WITHOUT FAILING TEST" |
