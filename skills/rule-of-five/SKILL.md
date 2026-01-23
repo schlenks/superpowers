@@ -17,17 +17,41 @@ LLMs solve problems breadth-first: broad strokes first, then refinement. Single-
 
 ## Quick Start
 
-Create todos for 5 passes. For each pass: re-read the full artifact, evaluate through that lens only, make changes.
+**Create native tasks for 5 passes with sequential dependencies:**
 
 ```
-todos: [
-  { content: "Draft", activeForm: "Drafting", status: "in_progress" },
-  { content: "Correctness", activeForm: "Checking correctness", status: "pending" },
-  { content: "Clarity", activeForm: "Improving clarity", status: "pending" },
-  { content: "Edge cases", activeForm: "Handling edge cases", status: "pending" },
-  { content: "Excellence", activeForm: "Polishing", status: "pending" }
-]
+TaskCreate: "Pass 1: Draft"
+  description: "Shape and structure. Get the outline right. Breadth over depth."
+  activeForm: "Drafting"
+
+TaskCreate: "Pass 2: Correctness"
+  description: "Logic, bugs, regressions. Does it work? Did it break anything?"
+  activeForm: "Checking correctness"
+  addBlockedBy: [draft-task-id]
+
+TaskCreate: "Pass 3: Clarity"
+  description: "Comprehension. Can someone unfamiliar understand this? Simplify."
+  activeForm: "Improving clarity"
+  addBlockedBy: [correctness-task-id]
+
+TaskCreate: "Pass 4: Edge Cases"
+  description: "Failure modes. What's missing? What breaks under stress?"
+  activeForm: "Handling edge cases"
+  addBlockedBy: [clarity-task-id]
+
+TaskCreate: "Pass 5: Excellence"
+  description: "Pride. Would you show this to a senior colleague? Polish rough spots."
+  activeForm: "Polishing"
+  addBlockedBy: [edge-cases-task-id]
 ```
+
+**ENFORCEMENT:**
+- Each pass is blocked until the previous completes
+- Cannot commit until all 5 tasks show `status: completed`
+- TaskList shows your progress through the passes
+- Skipping passes is visible - blocked tasks can't be marked in_progress
+
+For each pass: re-read the full artifact, evaluate through that lens only, make changes, then mark task complete.
 
 ## Detection Triggers
 

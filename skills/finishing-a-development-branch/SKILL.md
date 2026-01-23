@@ -15,14 +15,27 @@ Guide completion of development work by presenting clear options and handling ch
 
 ## The Process
 
-### Step 1: Verify Tests
+### Step 1: Verify Tests (Task-Tracked)
 
-**Before presenting options, verify tests pass:**
+**Create a verification task before presenting options:**
+
+```
+TaskCreate: "Verify all tests pass"
+  description: "Run full test suite. Must capture actual output showing pass/fail. Cannot proceed with failing tests."
+  activeForm: "Running test verification"
+```
+
+**Run project's test suite:**
 
 ```bash
 # Run project's test suite
 npm test / cargo test / pytest / go test ./...
 ```
+
+**ENFORCEMENT:** This task CANNOT be marked `completed` unless:
+- Test command was run (fresh, in this message)
+- Output shows 0 failures
+- Exit code was 0
 
 **If tests fail:**
 ```
@@ -33,9 +46,11 @@ Tests failing (<N> failures). Must fix before completing:
 Cannot proceed with merge/PR until tests pass.
 ```
 
-Stop. Don't proceed to Step 2.
+Stop. Don't proceed to Step 2. Leave verification task incomplete.
 
-**If tests pass:** Continue to Step 2.
+**If tests pass:**
+- Mark verification task `completed`
+- Continue to Step 2
 
 ### Step 2: Determine Base Branch
 
@@ -46,7 +61,28 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 3: Present Options
+### Step 3: Present Options (Task-Tracked)
+
+**Create tasks for the remaining steps (blocked by test verification):**
+
+```
+TaskCreate: "Present completion options"
+  description: "Present 4 structured options to user: merge, PR, keep, discard."
+  activeForm: "Presenting options"
+  addBlockedBy: [verify-tests-task-id]
+
+TaskCreate: "Execute chosen option"
+  description: "Execute user's chosen option from the 4 presented."
+  activeForm: "Executing chosen option"
+  addBlockedBy: [present-options-task-id]
+
+TaskCreate: "Cleanup worktree (if applicable)"
+  description: "Remove worktree for options 1, 2, or 4. Keep for option 3."
+  activeForm: "Cleaning up worktree"
+  addBlockedBy: [execute-option-task-id]
+```
+
+### Step 3 Execution: Present Options
 
 Present exactly these 4 options:
 

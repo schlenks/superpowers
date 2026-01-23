@@ -37,6 +37,35 @@ BEFORE claiming any status or expressing satisfaction:
 Skip any step = lying, not verifying
 ```
 
+## Verification Task Enforcement
+
+**Before making ANY completion claim, create a verification task:**
+
+```
+TaskCreate: "Verify: [specific claim]"
+  description: "Evidence required: [verification command]. Must capture command output and exit code."
+  activeForm: "Verifying [claim]"
+```
+
+**ENFORCEMENT:**
+- Task description MUST specify the verification command
+- Task CANNOT be marked `completed` without evidence in the conversation
+- Evidence = actual command output showing pass/fail
+- Subsequent completion claims blocked until verification task completed
+
+**Example:**
+```
+TaskCreate: "Verify: tests pass"
+  description: "Run: npm test. Evidence: 0 failures in output, exit code 0."
+  activeForm: "Running verification tests"
+
+// RUN the command, capture output
+// ONLY if passes: TaskUpdate status=completed
+// Then and only then: "Tests pass (34/34, exit 0)"
+```
+
+**Why this matters:** TaskList exposes unverified completion claims. If you claim "done" without a completed verification task, the lack of evidence is visible.
+
 ## Common Failures
 
 | Claim | Requires | Not Sufficient |

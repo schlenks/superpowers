@@ -19,23 +19,51 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **REQUIRED:** Before ExitPlanMode, run the Plan Verification Checklist (scope/accuracy), then apply rule-of-five (Draft→Correctness→Clarity→Edge Cases→Excellence). Verify *what* before polishing *how*.
 
-## Mandatory Todos (Enforcement)
+## Mandatory Tasks (Enforcement)
 
-**Create these todos at plan start.** You cannot call ExitPlanMode with pending items:
+**Create these native tasks at plan start.** You cannot call ExitPlanMode with pending tasks:
 
-```typescript
-todos: [
-  { content: "Write draft plan", activeForm: "Writing draft plan", status: "in_progress" },
-  { content: "Plan Verification Checklist", activeForm: "Running verification checklist", status: "pending" },
-  { content: "Rule-of-five: Draft pass", activeForm: "Draft pass", status: "pending" },
-  { content: "Rule-of-five: Correctness pass", activeForm: "Correctness pass", status: "pending" },
-  { content: "Rule-of-five: Clarity pass", activeForm: "Clarity pass", status: "pending" },
-  { content: "Rule-of-five: Edge Cases pass", activeForm: "Edge cases pass", status: "pending" },
-  { content: "Rule-of-five: Excellence pass", activeForm: "Excellence pass", status: "pending" },
-]
+```
+TaskCreate: "Write draft plan"
+  description: "Create initial plan structure with all tasks, dependencies, and file lists."
+  activeForm: "Writing draft plan"
+
+TaskCreate: "Plan Verification Checklist"
+  description: "Verify: Complete, Accurate, Commands valid, YAGNI, Minimal, Not over-engineered."
+  activeForm: "Running verification checklist"
+  addBlockedBy: [draft-task-id]
+
+TaskCreate: "Rule-of-five: Draft pass"
+  description: "Shape and structure. Get the outline right."
+  activeForm: "Draft pass"
+  addBlockedBy: [checklist-task-id]
+
+TaskCreate: "Rule-of-five: Correctness pass"
+  description: "Logic, accuracy, file paths. Does everything work?"
+  activeForm: "Correctness pass"
+  addBlockedBy: [draft-pass-id]
+
+TaskCreate: "Rule-of-five: Clarity pass"
+  description: "Can someone unfamiliar follow this? Simplify."
+  activeForm: "Clarity pass"
+  addBlockedBy: [correctness-pass-id]
+
+TaskCreate: "Rule-of-five: Edge Cases pass"
+  description: "What's missing? Error handling? Rollback?"
+  activeForm: "Edge cases pass"
+  addBlockedBy: [clarity-pass-id]
+
+TaskCreate: "Rule-of-five: Excellence pass"
+  description: "Polish. Would you show this to a senior colleague?"
+  activeForm: "Excellence pass"
+  addBlockedBy: [edge-cases-pass-id]
 ```
 
-**These todos make verification visible and trackable.** Mark each complete as you finish it.
+**ENFORCEMENT:**
+- Cannot call ExitPlanMode until all 7 tasks show `status: completed`
+- Each task is blocked by the previous, enforcing the sequence
+- TaskList shows exactly where you are in the process
+- Skipping tasks is visible - blocked tasks cannot be marked in_progress
 
 ## Bite-Sized Task Granularity
 

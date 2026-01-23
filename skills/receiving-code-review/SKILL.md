@@ -24,6 +24,44 @@ WHEN receiving code review feedback:
 6. IMPLEMENT: One item at a time, test each
 ```
 
+## Response Task Enforcement
+
+**When receiving code review feedback, create native tasks for each step:**
+
+```
+TaskCreate: "READ: Complete feedback without reacting"
+  description: "Read all feedback items completely before doing anything else."
+  activeForm: "Reading feedback"
+
+TaskCreate: "UNDERSTAND: Restate requirements"
+  description: "For each item, restate the requirement in your own words. Ask for clarification on unclear items."
+  activeForm: "Understanding feedback"
+  addBlockedBy: [read-task-id]
+
+TaskCreate: "VERIFY: Check against codebase"
+  description: "Check each suggestion against codebase reality. Does current code exist for a reason? Will change break anything?"
+  activeForm: "Verifying against codebase"
+  addBlockedBy: [understand-task-id]
+
+TaskCreate: "EVALUATE: Technical soundness"
+  description: "Is each suggestion technically sound for THIS codebase? Does it violate YAGNI? Conflict with architecture?"
+  activeForm: "Evaluating suggestions"
+  addBlockedBy: [verify-task-id]
+
+TaskCreate: "IMPLEMENT: Apply changes"
+  description: "Implement one item at a time. Test each change. Verify no regressions."
+  activeForm: "Implementing changes"
+  addBlockedBy: [evaluate-task-id]
+```
+
+**ENFORCEMENT:**
+- VERIFY step CANNOT be skipped - it's explicitly blocked until UNDERSTAND completes
+- IMPLEMENT is blocked until EVALUATE completes - no blind implementation
+- If you jump to IMPLEMENT without completing prior steps, TaskList exposes it
+- Mark each task complete only when genuinely done
+
+**This prevents the common failure mode: skipping VERIFY and blindly implementing feedback.**
+
 ## Forbidden Responses
 
 **NEVER:**

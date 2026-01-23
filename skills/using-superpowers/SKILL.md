@@ -29,8 +29,8 @@ digraph skill_flow {
     "Might any skill apply?" [shape=diamond];
     "Invoke Skill tool" [shape=box];
     "Announce: 'Using [skill] to [purpose]'" [shape=box];
-    "Has checklist?" [shape=diamond];
-    "Create TodoWrite todo per item" [shape=box];
+    "Has phase tasks?" [shape=diamond];
+    "Create tasks with TaskCreate" [shape=box];
     "Follow skill exactly" [shape=box];
     "Respond (including clarifications)" [shape=doublecircle];
 
@@ -38,10 +38,10 @@ digraph skill_flow {
     "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
     "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
     "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
-    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
-    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
-    "Has checklist?" -> "Follow skill exactly" [label="no"];
-    "Create TodoWrite todo per item" -> "Follow skill exactly";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has phase tasks?";
+    "Has phase tasks?" -> "Create tasks with TaskCreate" [label="yes"];
+    "Has phase tasks?" -> "Follow skill exactly" [label="no"];
+    "Create tasks with TaskCreate" -> "Follow skill exactly";
 }
 ```
 
@@ -85,3 +85,40 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Native Task Integration
+
+Many skills use Claude Code's native task tools (TaskCreate, TaskUpdate, TaskList) to enforce quality gates and track progress.
+
+**Pattern:** Skills with multi-phase processes create sequential, blocked tasks:
+
+```
+TaskCreate: "Phase 1: [Description]"
+  description: "[Acceptance criteria]"
+  activeForm: "[Present continuous action]"
+
+TaskCreate: "Phase 2: [Description]"
+  addBlockedBy: [phase-1-id]  # Cannot start until Phase 1 completes
+```
+
+**Why this matters:**
+- **Visibility:** TaskList shows where you are in the process
+- **Enforcement:** Blocked tasks cannot be marked in_progress (skipping is visible)
+- **Evidence:** Task descriptions capture what was verified
+- **No rationalization:** Dependencies are explicit, not suggestions
+
+**Skills using this pattern:**
+- `systematic-debugging` - 4 phase tasks (Root Cause → Pattern → Hypothesis → Implementation)
+- `writing-skills` - RED/GREEN/REFACTOR tasks
+- `rule-of-five` - 5 sequential pass tasks
+- `receiving-code-review` - READ → UNDERSTAND → VERIFY → EVALUATE → IMPLEMENT
+- `verification-before-completion` - Verification evidence task
+- `writing-plans` - 7 tasks (draft + checklist + 5 rule-of-five passes)
+- `finishing-a-development-branch` - Test verification + options + execute + cleanup
+- `plan2beads` - 5 conversion phase tasks
+- `executing-plans` - Batch checkpoint + feedback tasks
+- `subagent-driven-development` - Wave tracking + file conflict verification
+- `test-driven-development` - RED/GREEN/REFACTOR per feature
+- `using-git-worktrees` - 6 setup verification tasks
+
+**When invoking these skills:** Tasks are created automatically. Follow the skill's instructions for when to mark tasks complete.

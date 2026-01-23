@@ -394,6 +394,32 @@ Edit skill without testing? Same violation.
 
 **REQUIRED BACKGROUND:** The superpowers:test-driven-development skill explains why this matters. Same principles apply to documentation.
 
+## Phase Task Enforcement
+
+**When creating or editing a skill, create native tasks for each TDD phase:**
+
+```
+TaskCreate: "RED: Write failing test (baseline)"
+  description: "Run pressure scenarios WITHOUT skill. Document: baseline behavior, rationalizations verbatim, which pressures triggered violations."
+  activeForm: "Running baseline tests"
+
+TaskCreate: "GREEN: Write minimal skill"
+  description: "Write skill addressing specific baseline failures. Run scenarios WITH skill and verify compliance. Apply rule-of-five."
+  activeForm: "Writing skill"
+  addBlockedBy: [red-task-id]
+
+TaskCreate: "REFACTOR: Close loopholes"
+  description: "Identify new rationalizations, add explicit counters, build rationalization table, re-test until bulletproof."
+  activeForm: "Closing loopholes"
+  addBlockedBy: [green-task-id]
+```
+
+**ENFORCEMENT:**
+- Cannot write any skill content until RED task is `status: completed`
+- GREEN task requires baseline documentation in RED task
+- Cannot commit skill until all 3 phases complete
+- TaskList shows if you're skipping phases
+
 ## Testing All Skill Types
 
 Different skill types need different test approaches:
@@ -597,14 +623,15 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 
 ## Skill Creation Checklist (TDD Adapted)
 
-**IMPORTANT: Use TodoWrite to create todos for EACH checklist item below.**
+**IMPORTANT: Create the 3 phase tasks from "Phase Task Enforcement" above first. Then use this checklist to verify each phase is complete.**
 
-**RED Phase - Write Failing Test:**
+**RED Phase - Write Failing Test (must complete before GREEN):**
 - [ ] Create pressure scenarios (3+ combined pressures for discipline skills)
 - [ ] Run scenarios WITHOUT skill - document baseline behavior verbatim
 - [ ] Identify patterns in rationalizations/failures
+- [ ] Mark RED task as `completed` with evidence in description
 
-**GREEN Phase - Write Minimal Skill:**
+**GREEN Phase - Write Minimal Skill (must complete before REFACTOR):**
 - [ ] Name uses only letters, numbers, hyphens (no parentheses/special chars)
 - [ ] YAML frontmatter with only name and description (max 1024 chars)
 - [ ] Description starts with "Use when..." and includes specific triggers/symptoms
@@ -616,6 +643,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] One excellent example (not multi-language)
 - [ ] Run scenarios WITH skill - verify agents now comply
 - [ ] **Apply superpowers:rule-of-five to skill document** (Draft→Correctness→Clarity→Edge Cases→Excellence)
+- [ ] Mark GREEN task as `completed`
 
 **REFACTOR Phase - Close Loopholes:**
 - [ ] Identify NEW rationalizations from testing
@@ -623,6 +651,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Build rationalization table from all test iterations
 - [ ] Create red flags list
 - [ ] Re-test until bulletproof
+- [ ] Mark REFACTOR task as `completed`
 
 **Quality Checks:**
 - [ ] Small flowchart only if decision non-obvious
@@ -632,7 +661,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Supporting files only for tools or heavy reference
 - [ ] **Rule-of-five applied** (skill documents are significant artifacts)
 
-**Deployment:**
+**Deployment (only after all 3 phase tasks are completed):**
 - [ ] Commit skill to git and push to your fork (if configured)
 - [ ] Consider contributing back via PR (if broadly useful)
 

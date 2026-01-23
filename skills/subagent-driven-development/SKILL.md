@@ -108,7 +108,15 @@ Current epic: hub-abc
 Filter to: hub-abc.1, hub-abc.2 (ignore hub-xyz.1)
 ```
 
-## File Conflict Detection
+## File Conflict Detection (Task-Tracked)
+
+**Before dispatching each wave, create a conflict verification task:**
+
+```
+TaskCreate: "Verify no file conflicts in wave N"
+  description: "Parse ## Files from each ready issue. Build file→issue map. Identify conflicts. Report parallelizable set."
+  activeForm: "Checking file conflicts"
+```
 
 Before parallel dispatch, check for file overlap:
 
@@ -131,13 +139,23 @@ Issue hub-abc.3 files: [auth.service.ts, models/index.ts]  ← CONFLICT with .1!
 5. If file appears in multiple ready issues:
    - **Dispatch lowest-numbered first** (e.g., hub-abc.1 before hub-abc.3)
    - **Defer conflicting issues to next wave** (they stay ready, dispatch after current wave completes)
-6. Dispatch all non-conflicting issues in parallel
+6. **Mark conflict verification task as `completed` with conflict report**
+7. Dispatch all non-conflicting issues in parallel
 
 **If `## Files` section is missing:** Treat as conflicting with ALL other issues (cannot parallelize, must dispatch alone).
 
 **Why defer instead of block?** Deferred issues aren't blocked by dependencies—they're just waiting to avoid merge conflicts. Once the current wave completes, re-check `bd ready` and they'll be dispatchable.
 
-## Parallel Dispatch
+## Parallel Dispatch (Task-Tracked)
+
+**Create wave tracking task before dispatch:**
+
+```
+TaskCreate: "Wave N: Dispatch [list issues]"
+  description: "Dispatching: hub-abc.1, hub-abc.2. Files verified non-conflicting."
+  activeForm: "Dispatching wave N"
+  addBlockedBy: [conflict-verify-task-id]
+```
 
 **Key difference from sequential:**
 
@@ -149,7 +167,11 @@ SEQUENTIAL (old):
     review()
 
 PARALLEL (new):
+  TaskCreate "Verify no file conflicts in wave N"
   parallelizable = filter_file_conflicts(ready)
+  TaskUpdate conflict-task status=completed  # with conflict report
+
+  TaskCreate "Wave N: Dispatch [list issues]"
   for issue in parallelizable:
     bd update <id> --status=in_progress
     dispatch_async(issue)  # Don't wait!
@@ -158,7 +180,11 @@ PARALLEL (new):
     completed = wait_for_any()
     review(completed)
     if passes: bd close completed
+
+  TaskUpdate wave-task status=completed  # when all in wave done
 ```
+
+**ENFORCEMENT:** Wave dispatch task is blocked until file conflict verification completes. This makes the verification step visible and non-skippable.
 
 ## Prompt Templates
 

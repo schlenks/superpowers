@@ -21,6 +21,38 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
 If you haven't completed Phase 1, you cannot propose fixes.
 
+## Phase Task Enforcement
+
+**When this skill is invoked, create native tasks for each phase:**
+
+```
+TaskCreate: "Phase 1: Root Cause Investigation"
+  description: "Read errors, reproduce, check changes, gather evidence. MUST understand WHAT and WHY before proceeding."
+  activeForm: "Investigating root cause"
+
+TaskCreate: "Phase 2: Pattern Analysis"
+  description: "Find working examples, compare, identify differences. Blocked until Phase 1 complete."
+  activeForm: "Analyzing patterns"
+  addBlockedBy: [phase-1-id]
+
+TaskCreate: "Phase 3: Hypothesis & Testing"
+  description: "Form single hypothesis, test minimally, verify. Blocked until Phase 2 complete."
+  activeForm: "Testing hypothesis"
+  addBlockedBy: [phase-2-id]
+
+TaskCreate: "Phase 4: Implementation"
+  description: "Create failing test, implement single fix, verify. Blocked until Phase 3 complete."
+  activeForm: "Implementing fix"
+  addBlockedBy: [phase-3-id]
+```
+
+**ENFORCEMENT:** TaskList will show blocked phases. You CANNOT:
+- Propose fixes until Phase 1-3 tasks show `status: completed`
+- Skip ahead - blocked tasks cannot be marked in_progress
+- Rationalize around this - task state is visible proof of process
+
+**Mark each phase complete only when its success criteria are met (see phase details below).**
+
 ## When to Use
 
 Use for ANY technical issue:

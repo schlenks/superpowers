@@ -44,7 +44,31 @@ Write code before the test? Delete it. Start over.
 
 Implement fresh from tests. Period.
 
-## Red-Green-Refactor
+## Red-Green-Refactor (Task-Tracked)
+
+**For each TDD cycle, create tracking tasks:**
+
+```
+TaskCreate: "RED: Write test for [feature]"
+  description: "Write one failing test. MUST run and see it fail before proceeding."
+  activeForm: "Writing failing test"
+
+TaskCreate: "GREEN: Implement [feature]"
+  description: "Write minimal code to pass the test. No extras. MUST run and see it pass."
+  activeForm: "Implementing minimal code"
+  addBlockedBy: [red-task-id]
+
+TaskCreate: "REFACTOR: Clean up [feature]"
+  description: "Remove duplication, improve names. Keep tests green."
+  activeForm: "Refactoring"
+  addBlockedBy: [green-task-id]
+```
+
+**ENFORCEMENT:**
+- GREEN is blocked until RED is completed (test must fail first)
+- REFACTOR is blocked until GREEN is completed (code must pass first)
+- Each task requires RUNNING the test command and capturing output
+- Skipping the "WATCH it fail/pass" step is now visible in TaskList
 
 ```dot
 digraph tdd_cycle {

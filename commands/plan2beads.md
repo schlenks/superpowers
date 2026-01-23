@@ -22,6 +22,44 @@ Import a Superpowers plan (Markdown) or a Shortcut story into Beads as an epic w
 /plan2beads 1234
 ```
 
+## Conversion Task Enforcement
+
+**When executing plan2beads, create native tasks to track each phase:**
+
+```
+TaskCreate: "Parse plan structure"
+  description: "Extract: epic title, context sections, phases, task H3s, Depends on: lines, Files: sections."
+  activeForm: "Parsing plan"
+
+TaskCreate: "Create epic"
+  description: "Write epic description to temp file. Run bd create. Capture epic ID."
+  activeForm: "Creating epic"
+  addBlockedBy: [parse-task-id]
+
+TaskCreate: "Create child tasks"
+  description: "Build task ID map. Validate dependencies (no forward refs, self-refs). Run bd create for each."
+  activeForm: "Creating tasks"
+  addBlockedBy: [create-epic-task-id]
+
+TaskCreate: "Dependency verification"
+  description: "Run: bd ready (verify independent tasks), bd blocked (verify expected blockers), bd graph (visual check)."
+  activeForm: "Verifying dependencies"
+  addBlockedBy: [create-tasks-id]
+
+TaskCreate: "Final validation gate"
+  description: "Verify: epic exists, all children linked, no circular deps, display summary."
+  activeForm: "Running final validation"
+  addBlockedBy: [dep-verify-task-id]
+```
+
+**ENFORCEMENT:**
+- Each phase blocked by previous - cannot skip ahead
+- Create child tasks cannot start until epic ID is captured
+- Dependency verification cannot start until all tasks created
+- Final validation exposes any issues before completing
+
+**Why this matters:** plan2beads is the most complex multi-step process. Without task tracking, dependency misconfiguration is silent.
+
 ## Instructions
 
 ### Step 1: Load the Plan
