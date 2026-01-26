@@ -186,6 +186,34 @@ PARALLEL (new):
 
 **ENFORCEMENT:** Wave dispatch task is blocked until file conflict verification completes. This makes the verification step visible and non-skippable.
 
+## Wave Summary (Cross-Wave Context)
+
+**After each wave completes, post a summary comment to the epic:**
+
+```bash
+bd comments add <epic-id> "Wave N complete:
+- Closed: hub-abc.1, hub-abc.2
+- Conventions established:
+  - [Pattern/convention implementers chose]
+  - [Naming convention used]
+  - [Library/approach selected when choice existed]
+- Notes for future waves:
+  - [Anything Wave N+1 should know]"
+```
+
+**Why this matters:**
+- Wave 2 implementers can see what conventions Wave 1 established
+- Prevents inconsistent naming, patterns, or style choices
+- Creates audit trail of implementation decisions
+
+**What to capture:**
+- File naming patterns chosen
+- Code style decisions (async/await vs promises, etc.)
+- Interface shapes that future tasks will consume
+- Any surprises or deviations from the plan
+
+**When to skip:** If the wave established no new conventions (e.g., single-task wave, or tasks followed existing patterns without decisions), a minimal summary is fine: "Wave N complete: Closed hub-abc.1. No new conventions."
+
 ## Prompt Templates
 
 - `./implementer-prompt.md` - Dispatch implementer subagent (updated for beads)
@@ -240,6 +268,12 @@ Spec reviewer: ✅ Spec compliant
 Code reviewer: ✅ Approved
 
 [bd close hub-abc.1]
+
+[Post wave summary]
+bd comments add hub-abc "Wave 1 complete:
+- Closed: hub-abc.1 (User model), hub-abc.2 (JWT utils)
+- Conventions: Using uuid v4 for IDs, camelCase for all JSON fields
+- Notes: JWT expiry set to 24h per Key Decisions"
 
 [bd ready now shows hub-abc.3 (unblocked - was blocked by .1)]
 [bd blocked: hub-abc.4 (still waiting on .3)]
