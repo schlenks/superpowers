@@ -1,5 +1,56 @@
 # Superpowers Release Notes
 
+## v4.0.8 (2026-01-26) - TBL Fork
+
+### Feature: Enhanced Context Preservation
+
+Three improvements to preserve architectural context across the planning-to-execution workflow.
+
+**Key Decisions in Plan Headers**
+
+Plans now require a `## Key Decisions` section in the header template, documenting 3-5 architectural decisions with rationale. This ensures implementers understand WHY choices were made, not just WHAT to build.
+
+- `writing-plans`: Added Key Decisions section to header template with guidance
+- `plan2beads`: Copies Key Decisions to TOP of epic description for visibility via `bd show`
+- Backward compatible: older plans without Key Decisions still convert with a warning
+
+**Task-Level Context Sections**
+
+Task templates now support optional but recommended context sections:
+- `Purpose:` — Why this task exists (1 sentence)
+- `Not In Scope:` — What this task should NOT do (prevents overbuilding)
+- `Gotchas:` — Known issues or quirks discovered during planning
+
+These are RECOMMENDED, not required, to avoid boilerplate when context is obvious.
+
+**Cross-Wave Summary Comments**
+
+`subagent-driven-development` now includes guidance to post wave summary comments after each wave completes:
+
+```bash
+bd comments add <epic-id> "Wave N complete:
+- Closed: hub-abc.1, hub-abc.2
+- Conventions established: [patterns, naming, style choices]
+- Notes for future waves: [anything Wave N+1 should know]"
+```
+
+This propagates implementation conventions from earlier waves to later waves, preventing inconsistency across parallel subagents.
+
+**Verification Checklist Updates**
+
+Plan Verification Checklist now includes:
+- `Key Decisions documented` — Are 3-5 key decisions captured with rationale?
+- `Context sections present` — Do non-obvious tasks have Purpose? Scope-boundary tasks have Not In Scope?
+
+### Files Changed (3)
+
+**Skills (2):**
+- skills/writing-plans/SKILL.md (+35 lines across 3 commits)
+- skills/subagent-driven-development/SKILL.md (+34 lines)
+
+**Commands (1):**
+- commands/plan2beads.md (+11 lines)
+
 ## v4.0.7 (2026-01-23) - TBL Fork
 
 ### Major Feature: Native Task Tool Integration
