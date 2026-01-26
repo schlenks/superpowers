@@ -89,8 +89,19 @@ TaskCreate: "Rule-of-five: Excellence pass"
 
 **Tech Stack:** [Key technologies/libraries]
 
+**Key Decisions:**
+- **[Decision area]:** [Choice made] — [Why this over alternatives]
+- **[Decision area]:** [Choice made] — [Why]
+- **[Decision area]:** [Choice made] — [Why]
+
 ---
 ```
+
+**Key Decisions guidance:**
+- 3-5 decisions that implementers might question
+- Include WHAT was decided AND WHY
+- Focus on decisions where alternatives existed
+- Examples: "JWT over sessions — stateless scaling", "PostgreSQL over MongoDB — relational data with complex joins"
 
 ## Task Structure
 
