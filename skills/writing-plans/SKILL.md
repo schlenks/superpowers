@@ -109,6 +109,11 @@ TaskCreate: "Rule-of-five: Excellence pass"
 - Safe parallel execution (tasks with no dependency conflicts)
 - File conflict detection (tasks modifying same files can't run in parallel)
 
+**RECOMMENDED: Include context sections when relevant:**
+- `Purpose:` — Why this task exists (1 sentence)
+- `Not In Scope:` — What this task should NOT do (prevents overbuilding)
+- `Gotchas:` — Known issues or quirks discovered during planning
+
 ```markdown
 ### Task N: [Component Name]
 
@@ -117,6 +122,16 @@ TaskCreate: "Rule-of-five: Excellence pass"
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
+
+**Purpose:** [One sentence explaining why this task exists and what it enables]
+
+**Not In Scope:** (optional, include if scope confusion likely)
+- [Thing that might seem related but is handled elsewhere]
+- [Feature that's deferred to future task]
+
+**Gotchas:** (optional, include if quirks discovered during planning)
+- [Library X has issue Y — use workaround Z]
+- [File uses tabs not spaces — match existing convention]
 
 **Step 1: Write the failing test**
 
@@ -241,6 +256,9 @@ Changes made: [list specific changes or "none needed"]
 - Reference relevant skills by name (e.g., `superpowers:skill-name`)
 - DRY, YAGNI, TDD, frequent commits
 - **Every task needs `Depends on:` and `Files:`**
+- **Include `Purpose:` for non-obvious tasks**
+- **Include `Not In Scope:` when scope boundaries are unclear**
+- **Include `Gotchas:` for quirks discovered during planning**
 - **Run Plan Verification Checklist before rule-of-five**
 - **Apply rule-of-five before finalizing plan**
 
