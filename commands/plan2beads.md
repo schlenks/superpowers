@@ -314,11 +314,11 @@ Compare implementation against the original plan to verify spec compliance.
 |-------|----------|
 | Complete | Does implementation address ALL requirements from the plan? |
 | Accurate | Do file paths, line numbers, and commands match the plan? |
-| YAGNI | Were extra features, refactors, or "improvements" added beyond scope? |
+| YAGNI | Does implementation contain ONLY what was specified? (no extra features/refactors) |
 | Minimal | Is the solution the simplest that meets requirements? |
-| Not over-engineered | Are there unnecessary abstractions, helpers, or configurability? |
+| Not over-engineered | Is the solution free of unnecessary abstractions or configurability? |
 | Key Decisions followed | Does implementation match the Key Decisions section? |
-| No drift | Did implementation stray from the plan without documenting why? |
+| No drift | Does implementation follow the plan? (or document justified deviations) |
 
 **Required evidence for spec reviewer:**
 - Each checklist item verified with pass/fail

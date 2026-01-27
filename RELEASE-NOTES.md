@@ -1,5 +1,31 @@
 # Superpowers Release Notes
 
+## v4.0.10 (2026-01-27) - TBL Fork
+
+### Fix: Verification Chain Always Required
+
+Fixed issue where `plan2beads` would skip creating the verification task chain if the plan already included a verification task (e.g., "Task 10: Verify Build and Tests").
+
+**Root cause:** The verification chain creation logic didn't distinguish between:
+- **Engineering verification** (typecheck, tests, build) — what plans often include
+- **Process verification** (rule-of-five, code review, spec compliance) — what plan2beads should add
+
+**Changes:**
+- Added CRITICAL callout: verification chain must be added REGARDLESS of plan content
+- Renamed "Plan Verification Checklist" → "Spec Verification" for clarity
+- Added engineering verification checklist with 7 checks:
+  - Complete — all requirements addressed
+  - Accurate — file paths/commands match plan
+  - YAGNI — no extra features added
+  - Minimal — simplest solution
+  - Not over-engineered — no unnecessary abstractions
+  - Key Decisions followed — matches plan's decisions
+  - No drift — didn't stray without documenting why
+- Updated summary to clarify chain is "ALWAYS added, not from plan"
+
+**Files Changed (1):**
+- commands/plan2beads.md (+22 lines)
+
 ## v4.0.9 (2026-01-27) - TBL Fork
 
 ### Feature: Epic Verification Enforcement
