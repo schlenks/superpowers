@@ -66,7 +66,6 @@ digraph process {
     "bd close <id>" [shape=box];
     "Fix issues, re-review" [shape=box];
     "All issues in epic closed?" [shape=diamond];
-    "Final code review of entire epic" [shape=box];
     "superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Load epic: bd show <epic-id>" -> "Get child IDs from epic";
@@ -83,8 +82,7 @@ digraph process {
     "Fix issues, re-review" -> "Review completed (spec then quality)";
     "bd close <id>" -> "All issues in epic closed?";
     "All issues in epic closed?" -> "ready = bd ready ∩ epic children" [label="no - check newly unblocked"];
-    "All issues in epic closed?" -> "Final code review of entire epic" [label="yes"];
-    "Final code review of entire epic" -> "superpowers:finishing-a-development-branch";
+    "All issues in epic closed?" -> "superpowers:finishing-a-development-branch" [label="yes"];
 }
 ```
 
