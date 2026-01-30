@@ -33,6 +33,26 @@ digraph when_to_use {
 
 **Announce at start:** "I'm using Subagent-Driven Development to execute beads epic [epic-id]."
 
+## Budget Tier Selection
+
+Before dispatching, determine model selection strategy.
+
+**Ask the user:**
+> What's your Claude Code subscription tier?
+> - **Max 20x** - Quality priority (opus for implementation)
+> - **Max 5x** - Balanced (sonnet throughout)
+> - **Pro/API** - Budget priority (haiku where possible)
+
+**Model matrix by tier:**
+
+| Tier | Implementer | Spec Reviewer | Code Reviewer | Epic Verifier |
+|------|-------------|---------------|---------------|---------------|
+| max-20x | opus | sonnet | sonnet | opus |
+| max-5x | sonnet | haiku | sonnet | sonnet |
+| pro/api | sonnet | haiku | haiku | sonnet |
+
+**Store selection** for the session - don't ask again per wave.
+
 **Prerequisites:**
 - Beads epic exists (created via plan2beads)
 - Dependencies are set (`bd blocked` shows expected blockers)
