@@ -6,16 +6,8 @@
     "name": "Doug Schlenker",
     "email": "dougschlenker@gmail.com"
   },
-  "contributors": [
-    {
-      "name": "Jesse Vincent",
-      "email": "jesse@fsck.com",
-      "note": "Original Superpowers author"
-    }
-  ],
   "homepage": "https://github.com/schlenks/superpowers-bd",
   "repository": "https://github.com/schlenks/superpowers-bd",
-  "upstream": "https://github.com/obra/superpowers",
   "license": "MIT",
   "keywords": [
     "skills",
