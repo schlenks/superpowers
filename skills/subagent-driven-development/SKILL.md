@@ -110,13 +110,14 @@ digraph process {
 
 ## Verification Tasks
 
-Verification tasks (like Rule-of-Five, Code Review, Plan Verification) are processed through the **same dispatch loop** as implementation tasks. They are not special—they appear in `bd ready` when their dependencies close, get dispatched to implementer subagents, and go through spec/quality review like any other task.
+Verification tasks (like Rule-of-Five, Code Review, Plan Verification) are processed through the **same dispatch loop** as implementation tasks, but are routed to specialized agents based on task type (see "Dispatch Decision" section below).
 
 **Key points:**
 
 1. **Appear in `bd ready`** - When an implementation task closes, its dependent verification task becomes ready
-2. **Same dispatch flow** - Dispatched via implementer prompt, reviewed via spec then quality reviewers
-3. **Specific acceptance criteria** - The spec reviewer verifies the verification was actually performed, not just claimed
+2. **Routed by title** - Tasks with "verification" or "verify" in title go to `superpowers:epic-verifier`, others to `general-purpose` implementer
+3. **Same review flow** - All tasks still go through spec compliance then code quality review
+4. **Specific acceptance criteria** - The spec reviewer verifies the verification was actually performed, not just claimed
 
 **Example: Rule-of-Five verification task**
 
@@ -209,6 +210,21 @@ epic-verifier implementer
 - plan2beads already creates verification task with proper checklist
 - finishing-a-development-branch already checks verification task is closed
 - This fix ensures verification is done by dedicated agent, not rushed implementer
+
+**Dispatch example:**
+```python
+agent_type = get_agent_for_task(task)
+
+Task(
+    subagent_type=agent_type,
+    model=tier_verifier if agent_type == "superpowers:epic-verifier" else tier_impl,
+    run_in_background=True,
+    description=f"{'Verify' if 'epic-verifier' in agent_type else 'Implement'}: {task.id}",
+    prompt=verifier_prompt if 'epic-verifier' in agent_type else implementer_prompt
+)
+```
+
+**Verification agent prompt:** Use template at `skills/epic-verifier/verifier-prompt.md`. Model selection follows Budget Tier Selection matrix (opus for max-20x, sonnet otherwise).
 
 ## File Conflict Detection (Task-Tracked)
 
