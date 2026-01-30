@@ -1,19 +1,19 @@
 {
-  "name": "superpowers-bd",
-  "description": "Development marketplace for Superpowers core skills library",
+  "name": "superpowers-bd-marketplace",
+  "description": "Marketplace for Superpowers-BD: beads-integrated fork with wave orchestration and epic verification",
   "owner": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "Doug Schlenker",
+    "email": "dougschlenker@gmail.com"
   },
   "plugins": [
     {
-      "name": "superpowers",
-      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-      "version": "4.0.11",
+      "name": "superpowers-bd",
+      "description": "Beads-integrated fork of Superpowers: TDD, debugging, collaboration patterns with git-backed issue tracking and wave-based parallel execution",
+      "version": "4.1.0",
       "source": "./",
       "author": {
-        "name": "Jesse Vincent",
-        "email": "jesse@fsck.com"
+        "name": "Doug Schlenker",
+        "email": "dougschlenker@gmail.com"
       }
     }
   ]

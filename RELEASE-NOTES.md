@@ -1,6 +1,144 @@
 # Superpowers Release Notes
 
-## v4.0.11 (2026-01-28) - TBL Fork
+## v4.1.0 (2026-01-30) - Beads Fork
+
+### Major Feature: Epic Verifier Agent
+
+New dedicated agent and skill for epic completion verification. Separates verification from implementation to prevent self-certification bias.
+
+**Problem:** Implementer subagents were verifying their own work, leading to rubber-stamp approvals and missed issues. Verification steps were skippable.
+
+**Solution:** Created a dedicated `epic-verifier` agent that runs systematically after all implementation tasks close.
+
+**What it does:**
+- Engineering Checklist: YAGNI, plan drift, test coverage, regressions, docs, security
+- Rule-of-Five review on files with >50 lines changed
+- Produces PASS/FAIL verdict with file:line evidence
+- Does NOT fix issues - reports them for implementers
+
+**Files Added (3):**
+- agents/epic-verifier.md - Agent definition with full verification process
+- skills/epic-verifier/SKILL.md - Skill documentation with dispatch guidance
+- skills/epic-verifier/verifier-prompt.md - Prompt template with context slots
+
+---
+
+### Major Feature: Subagent-Driven Development Overhaul
+
+Comprehensive documentation additions to `subagent-driven-development` skill, making orchestration patterns explicit and production-ready.
+
+**Orchestrator State Machine**
+
+Documented 7 explicit states with transitions:
+- INIT → LOADING → DISPATCH → MONITOR → REVIEW → CLOSE → COMPLETE
+
+Each state has defined entry conditions, actions, and exit conditions.
+
+**Wave Orchestration with Native Task Tracking**
+
+Shows how to use Claude Code's TaskCreate tool to track orchestrator state:
+- Conflict check task
+- Wave tasks with blocked dependencies
+- Implementation and review sub-tasks
+- Wave summary tasks
+
+**Background Execution with Polling**
+
+Documents the `run_in_background: true` pattern for true parallelism:
+- Dispatch multiple implementations simultaneously
+- Poll with TaskOutput for completion
+- Immediately dispatch reviews as implementations finish
+- Better throughput than sequential dispatch
+
+**Budget Tier Selection**
+
+Model selection matrix based on Claude Code subscription tier:
+
+| Role | max-20x | max-5x | pro/api |
+|------|---------|--------|---------|
+| Orchestrator | opus | opus | sonnet |
+| Implementer | opus | sonnet | haiku |
+| Reviewer | opus | sonnet | sonnet |
+| Verifier | opus | sonnet | sonnet |
+
+**Dispatch Decision Logic**
+
+Verification tasks route to `epic-verifier` agent instead of generic implementers:
+- Detects "verification" or "verify" in task title
+- Includes decision function example
+- Flow diagram showing routing
+
+**Review Pipeline Parallelism**
+
+Documents parallel review dispatch:
+- Spec review + code review can run simultaneously
+- Both must pass before task closes
+- Reduces latency compared to sequential
+
+**Failure Recovery Patterns**
+
+Documents how to handle common failures:
+- Subagent timeout → retry with smaller scope
+- Subagent FAIL verdict → orchestrator fixes or re-dispatches
+- Conflicting file modifications → manual resolution
+- Context exceeded → split task
+
+---
+
+### New: Beads Setup Script
+
+Added `scripts/setup-beads-local.sh` for one-command beads setup with worktree support.
+
+**What it does:**
+1. Installs beads via brew/npm/go if not present
+2. Initializes beads in stealth mode (`.beads/` stays local)
+3. Adds worktree auto-exclude to shell config
+
+**Worktree support features:**
+- `bdwt` function - manually add `.beads/` to worktree's local exclude
+- `bdwtauto` function - automatically runs on directory change
+- Works with both bash and zsh
+- Caches last repo root to avoid repeated checks
+
+---
+
+### Other Changes
+
+**plan2beads updates:**
+- Now routes Epic Verification tasks to `epic-verifier` agent in dispatch guidance
+
+**Prompt template updates:**
+- Added model parameters to implementer/reviewer prompt templates
+- Minor clarifications to spec-reviewer and code-quality-reviewer prompts
+
+**Skills updates:**
+- beads skill: Added cross-reference to setup script
+- writing-plans: Minor documentation fixes
+
+**Cleanup:**
+- Removed old design documents from docs/plans/ (2025 files)
+
+### Files Changed (12)
+
+**New Files (4):**
+- agents/epic-verifier.md
+- skills/epic-verifier/SKILL.md
+- skills/epic-verifier/verifier-prompt.md
+- scripts/setup-beads-local.sh
+
+**Modified (8):**
+- commands/plan2beads.md (+155 lines across multiple commits)
+- skills/subagent-driven-development/SKILL.md (+359 lines)
+- skills/subagent-driven-development/implementer-prompt.md
+- skills/subagent-driven-development/spec-reviewer-prompt.md
+- skills/subagent-driven-development/code-quality-reviewer-prompt.md
+- skills/beads/SKILL.md
+- skills/writing-plans/SKILL.md
+- README.md (beads setup instructions)
+
+---
+
+## v4.0.11 (2026-01-28) - Beads Fork
 
 ### Simplify: Single Epic Verification Task with Explicit Checklist
 
@@ -31,7 +169,7 @@ Replaced the 4-task verification chain with a single "Epic Verification" task co
 
 ---
 
-## v4.0.10 (2026-01-27) - TBL Fork
+## v4.0.10 (2026-01-27) - Beads Fork
 
 ### Fix: Verification Chain Always Required
 
@@ -57,7 +195,7 @@ Fixed issue where `plan2beads` would skip creating the verification task chain i
 **Files Changed (1):**
 - commands/plan2beads.md (+22 lines)
 
-## v4.0.9 (2026-01-27) - TBL Fork
+## v4.0.9 (2026-01-27) - Beads Fork
 
 ### Feature: Epic Verification Enforcement
 
@@ -105,7 +243,7 @@ Added Step 0 that checks for verification tasks before proceeding:
 - skills/finishing-a-development-branch/SKILL.md (+44 lines)
 - skills/subagent-driven-development/SKILL.md (+57 lines across 4 commits)
 
-## v4.0.8 (2026-01-26) - TBL Fork
+## v4.0.8 (2026-01-26) - Beads Fork
 
 ### Feature: Enhanced Context Preservation
 
@@ -156,7 +294,7 @@ Plan Verification Checklist now includes:
 **Commands (1):**
 - commands/plan2beads.md (+11 lines)
 
-## v4.0.7 (2026-01-23) - TBL Fork
+## v4.0.7 (2026-01-23) - Beads Fork
 
 ### Major Feature: Native Task Tool Integration
 
@@ -227,7 +365,7 @@ Integrated Claude Code's native task tools (TaskCreate, TaskGet, TaskUpdate, Tas
 - docs/README.opencode.md
 - docs/README.codex.md
 
-## v4.0.6 (2026-01-19) - TBL Fork
+## v4.0.6 (2026-01-19) - Beads Fork
 
 ### Improvements
 
@@ -265,7 +403,7 @@ Cross-references added to:
 - `executing-plans` - REQUIRED BACKGROUND
 - `subagent-driven-development` - REQUIRED BACKGROUND
 
-## v4.0.5 (2026-01-19) - TBL Fork
+## v4.0.5 (2026-01-19) - Beads Fork
 
 ### Fixes
 
@@ -282,11 +420,11 @@ The newline syntax displays better in `bd show` output, with each criterion on i
 
 **Root cause:** Claude Code's permission pattern matching operates on the raw command string before shell parsing, so quoted semicolons still match the ` ; ` deny pattern.
 
-## v4.0.4 (2026-01-18) - TBL Fork
+## v4.0.4 (2026-01-18) - Beads Fork
 
 ### Fork Changes
 
-This version represents the ToursByLocals fork with customizations for beads-based workflow.
+This version represents the initial beads-integrated fork with customizations for persistent issue tracking and dependency-aware execution.
 
 **New: rule-of-five skill**
 
@@ -313,8 +451,8 @@ Converts markdown implementation plans to beads epics with proper dependencies. 
 
 **Metadata updates**
 
-- Repository references updated to `schlenks/superpowers` fork
-- README updated with TBL Customizations section
+- Repository references updated to `schlenks/superpowers-bd` fork
+- README updated with Beads Customizations section
 
 ## v4.0.3 (2025-12-26)
 

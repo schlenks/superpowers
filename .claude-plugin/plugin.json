@@ -1,13 +1,21 @@
 {
-  "name": "superpowers",
-  "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-  "version": "4.0.11",
+  "name": "superpowers-bd",
+  "description": "Beads-integrated fork of Superpowers: TDD, debugging, collaboration patterns with git-backed issue tracking and wave-based parallel execution",
+  "version": "4.1.0",
   "author": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "Doug Schlenker",
+    "email": "dougschlenker@gmail.com"
   },
-  "homepage": "https://github.com/schlenks/superpowers",
-  "repository": "https://github.com/schlenks/superpowers",
+  "contributors": [
+    {
+      "name": "Jesse Vincent",
+      "email": "jesse@fsck.com",
+      "note": "Original Superpowers author"
+    }
+  ],
+  "homepage": "https://github.com/schlenks/superpowers-bd",
+  "repository": "https://github.com/schlenks/superpowers-bd",
+  "upstream": "https://github.com/obra/superpowers",
   "license": "MIT",
   "keywords": [
     "skills",
@@ -15,6 +23,9 @@
     "debugging",
     "collaboration",
     "best-practices",
-    "workflows"
+    "workflows",
+    "beads",
+    "issue-tracking",
+    "subagents"
   ]
 }

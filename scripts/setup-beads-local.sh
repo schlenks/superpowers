@@ -150,7 +150,7 @@ else
   echo "  3. Worktree support NOT added (no .zshrc or .bashrc found)"
   echo ""
   echo "Next steps:"
-  echo "  - Manually add worktree functions from: https://github.com/schlenks/superpowers#local-only-beads-setup"
+  echo "  - Manually add worktree functions from: https://github.com/schlenks/superpowers-bd#local-only-beads-setup"
 fi
 echo "  - Run 'bd ready' to see available tasks"
 echo "  - Run 'bd create --title=\"My task\"' to create issues"

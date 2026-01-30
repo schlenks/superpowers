@@ -22,7 +22,7 @@ Reference for AI agents using the beads issue tracker CLI with Claude Code.
 
 > Beads isn't installed yet. Run this to set it up for local-only use (won't affect the repo):
 > ```bash
-> curl -fsSL https://raw.githubusercontent.com/schlenks/superpowers/main/scripts/setup-beads-local.sh | bash
+> curl -fsSL https://raw.githubusercontent.com/schlenks/superpowers-bd/main/scripts/setup-beads-local.sh | bash
 > ```
 >
 > This script installs beads, initializes stealth mode, and adds git worktree support to your shell.
