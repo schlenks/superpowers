@@ -358,14 +358,16 @@ Epic Verification task includes explicit checklist:
 Next commands:
   bd show hub-abc        # View epic details
   bd graph hub-abc       # Visual dependency graph
-  bd ready               # Start working
 
-To execute the epic, use the autonomous work loop:
-  bd ready                        # Find available work
-  bd update <id> --claim          # Claim a task
-  # ... do the work ...
-  bd close <id> --suggest-next    # Complete and see what unblocked
-  # Repeat through all tasks including verification
+═══════════════════════════════════════════════════════════════
+  TO EXECUTE WITH PARALLEL SUBAGENTS:
+
+  /clear
+  execute epic hub-abc
+═══════════════════════════════════════════════════════════════
+
+Why /clear first? Maximizes context for subagents. Planning
+conversation is no longer needed - beads preserves all task details.
 ```
 
 ## bd CLI Quick Reference

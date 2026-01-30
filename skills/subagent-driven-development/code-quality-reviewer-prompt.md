@@ -8,16 +8,25 @@ Use this template when dispatching a code quality reviewer subagent.
 
 ```
 Task tool:
-  subagent_type: "superpowers:code-reviewer"
+  subagent_type: "general-purpose"
   model: "sonnet"                  # tier-based: sonnet for max-20x, haiku for others
   description: "Code review: [issue-id]"
-  Use template at requesting-code-review/code-reviewer.md
+  prompt: |
+    [Paste contents of skills/requesting-code-review/code-reviewer.md]
 
-  WHAT_WAS_IMPLEMENTED: [from implementer's report]
-  PLAN_OR_REQUIREMENTS: Task N from [plan-file]
-  BASE_SHA: [commit before task]
-  HEAD_SHA: [current commit]
-  DESCRIPTION: [task summary]
+    Fill in placeholders:
+    - {WHAT_WAS_IMPLEMENTED}: [from implementer's report]
+    - {PLAN_OR_REQUIREMENTS}: Task N from [plan-file]
+    - {DESCRIPTION}: [task summary]
+    - {PLAN_REFERENCE}: [link to plan or bd show output]
+    - {BASE_SHA}: [commit before task]
+    - {HEAD_SHA}: [current commit]
 ```
 
-**Code reviewer returns:** Strengths, Issues (Critical/Important/Minor), Assessment
+**See:** `skills/requesting-code-review/code-reviewer.md` for the full template with:
+- Detailed review checklist (Code Quality, Architecture, Testing, Requirements, Production Readiness)
+- Output format with severity categories
+- DO/DON'T rules
+- Example output
+
+**Code reviewer returns:** Strengths, Issues (Critical/Important/Minor), Assessment (Ready to merge: Yes/No/With fixes)

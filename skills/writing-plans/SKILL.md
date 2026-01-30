@@ -303,9 +303,9 @@ Changes made: [list specific changes or "none needed"]
 
 **The full workflow:**
 ```
-writing-plans → Plan Verification → rule-of-five → Human Review → plan2beads → /compact → subagent-driven
-                      ↓                   ↓              ↓              ↓           ↓            ↓
-                 Scope check         Quality polish  Approve/Edit   bd verify   Reclaim     Parallel
+writing-plans → Plan Verification → rule-of-five → Human Review → /clear → plan2beads → /clear → subagent-driven
+                      ↓                   ↓              ↓            ↓        ↓           ↓            ↓
+                 Scope check         Quality polish  Approve/Edit  Reclaim  bd verify   Reclaim     Parallel
                                                                                context     execution
 ```
 
@@ -343,7 +343,7 @@ Planning consumes context. Before execution, reclaim it:
 Epic <epic-id> ready with N tasks.
 
 To maximize context for execution, run:
-  /compact
+  /clear
 
 Then say:
   execute epic <epic-id>

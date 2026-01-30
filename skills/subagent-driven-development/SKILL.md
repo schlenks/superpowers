@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session
+description: Use when user says "execute epic <id>" or when executing beads epics with parallel subagents in the current session
 ---
 
 # Subagent-Driven Development
@@ -59,6 +59,7 @@ Note: Epic Verifier uses sonnet minimum (opus for max-20x) because verification 
 - Beads epic exists (created via plan2beads)
 - Dependencies are set (`bd blocked` shows expected blockers)
 - Each issue has `## Files` section in description
+- Epic has 2+ child issues (single-issue work doesn't need orchestration—just implement and use `superpowers:verification-before-completion`)
 
 ## Key Terms
 
@@ -78,7 +79,7 @@ digraph process {
 
     "Load epic: bd show <epic-id>" [shape=box];
     "Get child IDs from epic" [shape=box];
-    "ready = bd ready ∩ epic children" [shape=box];
+    "ready = bd ready filtered to epic" [shape=box];
     "Any ready issues?" [shape=diamond];
     "Filter file conflicts among ready" [shape=box];
     "Dispatch implementers IN PARALLEL" [shape=box];
@@ -91,8 +92,8 @@ digraph process {
     "superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Load epic: bd show <epic-id>" -> "Get child IDs from epic";
-    "Get child IDs from epic" -> "ready = bd ready ∩ epic children";
-    "ready = bd ready ∩ epic children" -> "Any ready issues?";
+    "Get child IDs from epic" -> "ready = bd ready filtered to epic";
+    "ready = bd ready filtered to epic" -> "Any ready issues?";
     "Any ready issues?" -> "Filter file conflicts among ready" [label="yes"];
     "Any ready issues?" -> "Wait for ANY completion" [label="no - waiting on in_progress"];
     "Filter file conflicts among ready" -> "Dispatch implementers IN PARALLEL";
@@ -103,7 +104,7 @@ digraph process {
     "All reviews pass?" -> "Fix issues, re-review" [label="no"];
     "Fix issues, re-review" -> "Review completed (spec then quality)";
     "bd close <id>" -> "All issues in epic closed?";
-    "All issues in epic closed?" -> "ready = bd ready ∩ epic children" [label="no - check newly unblocked"];
+    "All issues in epic closed?" -> "ready = bd ready filtered to epic" [label="no - check newly unblocked"];
     "All issues in epic closed?" -> "superpowers:finishing-a-development-branch" [label="yes"];
 }
 ```
@@ -115,7 +116,7 @@ Verification tasks (like Rule-of-Five, Code Review, Plan Verification) are proce
 **Key points:**
 
 1. **Appear in `bd ready`** - When an implementation task closes, its dependent verification task becomes ready
-2. **Routed by title** - Tasks with "verification" or "verify" in title go to `superpowers:epic-verifier`, others to `general-purpose` implementer
+2. **Routed by title** - Tasks with "verification" or "verify" in title use the verifier prompt template, others use the implementer prompt
 3. **Same review flow** - All tasks still go through spec compliance then code quality review
 4. **Specific acceptance criteria** - The spec reviewer verifies the verification was actually performed, not just claimed
 
@@ -184,15 +185,15 @@ Filter to: hub-abc.1, hub-abc.2 (ignore hub-xyz.1)
 
 ## Dispatch Decision
 
-When a task becomes ready, determine which agent to dispatch:
+When a task becomes ready, determine which prompt template to use:
 
 ```python
-def get_agent_for_task(task):
+def get_prompt_for_task(task):
     title_lower = task.title.lower()
     if "verification" in title_lower or "verify" in title_lower:
-        return "superpowers:epic-verifier"
+        return ("verifier", verifier_prompt_template)  # from skills/epic-verifier/verifier-prompt.md
     else:
-        return "general-purpose"
+        return ("implementer", implementer_prompt_template)
 ```
 
 ```
@@ -202,29 +203,29 @@ Task becomes ready
 Is verification task?
     yes/ \no
       /   \
-Dispatch     Dispatch
-epic-verifier implementer
+Use verifier    Use implementer
+prompt          prompt
 ```
 
 **Why this works:**
 - plan2beads already creates verification task with proper checklist
 - finishing-a-development-branch already checks verification task is closed
-- This fix ensures verification is done by dedicated agent, not rushed implementer
+- Different prompts ensure verification is done rigorously, not rushed
 
 **Dispatch example:**
 ```python
-agent_type = get_agent_for_task(task)
+prompt_type, prompt_template = get_prompt_for_task(task)
 
 Task(
-    subagent_type=agent_type,
-    model=tier_verifier if agent_type == "superpowers:epic-verifier" else tier_impl,
+    subagent_type="general-purpose",  # Always general-purpose
+    model=tier_verifier if prompt_type == "verifier" else tier_impl,
     run_in_background=True,
-    description=f"{'Verify' if 'epic-verifier' in agent_type else 'Implement'}: {task.id}",
-    prompt=verifier_prompt if 'epic-verifier' in agent_type else implementer_prompt
+    description=f"{'Verify' if prompt_type == 'verifier' else 'Implement'}: {task.id}",
+    prompt=prompt_template.format(task=task)
 )
 ```
 
-**Verification agent prompt:** Use template at `skills/epic-verifier/verifier-prompt.md`. Model selection follows Budget Tier Selection matrix (opus for max-20x, sonnet otherwise).
+**Verification prompt:** Use template at `skills/epic-verifier/verifier-prompt.md`. Model selection follows Budget Tier Selection matrix (opus for max-20x, sonnet otherwise).
 
 ## File Conflict Detection (Task-Tracked)
 
@@ -261,6 +262,8 @@ Issue hub-abc.3 files: [auth.service.ts, models/index.ts]  ← CONFLICT with .1!
 7. Dispatch all non-conflicting issues in parallel
 
 **If `## Files` section is missing:** Treat as conflicting with ALL other issues (cannot parallelize, must dispatch alone).
+
+**If ALL ready tasks conflict:** Dispatch only the lowest-numbered task. This degrades to sequential execution—correct but slower. Consider whether the epic's task decomposition should be revised.
 
 **Why defer instead of block?** Deferred issues aren't blocked by dependencies—they're just waiting to avoid merge conflicts. Once the current wave completes, re-check `bd ready` and they'll be dispatchable.
 
@@ -306,7 +309,9 @@ PARALLEL (new):
 
 ### Background Execution with Polling
 
-For true parallelism (not just concurrent dispatch), use `run_in_background: true` with TaskOutput polling.
+**When to use:** For 3+ tasks per wave, background execution lets you monitor all tasks simultaneously and start reviews as soon as each completes—without waiting for all implementations to finish.
+
+Use `run_in_background: true` with TaskOutput polling.
 
 **Dispatch Phase:**
 
@@ -382,9 +387,10 @@ on_implementer_complete(task_id, result):
 on_spec_review_pass(task_id, result):
     # Immediately dispatch code review (background)
     code_task = Task(
-        subagent_type="superpowers:code-reviewer",
+        subagent_type="general-purpose",
         model=tier_code_model,
         run_in_background=True,
+        prompt=code_reviewer_prompt,  # from ./code-quality-reviewer-prompt.md
         ...
     )
     pending_code_reviews.add(code_task)
@@ -642,14 +648,15 @@ Transitions:
 
 ### Subagent Timeout/Crash
 ```
-1. TaskOutput(task_id, block=False) shows no progress
-2. Check git status for partial commits
-3. If partial work committed:
-   - Read what was done
-   - Dispatch new agent: "Continue from: [summary of completed work]"
-4. If no work:
-   - Dispatch fresh implementer
-   - Note in wave summary: "Task X restarted due to agent failure"
+if TaskOutput(task_id, block=False) shows no progress:
+    check git status for partial commits
+
+    if partial_work_committed:
+        read what was done
+        dispatch new agent: "Continue from: [summary of completed work]"
+    else:
+        dispatch fresh implementer
+        note in wave summary: "Task X restarted due to agent failure"
 ```
 
 ### Review Rejection Loop (>2 iterations)
@@ -669,7 +676,8 @@ if rejection_count[task_id] > 2:
 
 ### Deadlock Detection
 ```
-if bd_ready ∩ epic_children == empty AND open_issues > 0:
+# If no ready tasks exist for this epic, but open tasks remain:
+if (bd_ready filtered to epic_children) is empty AND open_issues > 0:
     Run: bd blocked
 
     if circular_dependency_detected:
@@ -681,12 +689,26 @@ if bd_ready ∩ epic_children == empty AND open_issues > 0:
         Action: bd close <task_id>
 ```
 
+### Reviewer Agent Failure
+```
+if reviewer_task_fails:
+    check TaskOutput for error details
+    dispatch fresh reviewer (same prompt, same task)
+
+    if fails_again:
+        STOP and ask human
+        # May indicate model capacity issue
+        # May need to split the review scope
+```
+
 ### bd Command Failures
 ```
 if bd_command_fails:
-    1. bd doctor  # Check beads health
-    2. git status  # Check git state
-    3. If persistent: STOP, ask human for help
+    run: bd doctor   # check beads health
+    run: git status  # check git state
+
+    if persistent:
+        STOP and ask human for help
 ```
 
 ## Integration
