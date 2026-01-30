@@ -7,7 +7,10 @@ Use this template when dispatching a code quality reviewer subagent.
 **Only dispatch after spec compliance review passes.**
 
 ```
-Task tool (superpowers:code-reviewer):
+Task tool:
+  subagent_type: "superpowers:code-reviewer"
+  model: "sonnet"                  # tier-based: sonnet for max-20x, haiku for others
+  description: "Code review: [issue-id]"
   Use template at requesting-code-review/code-reviewer.md
 
   WHAT_WAS_IMPLEMENTED: [from implementer's report]

@@ -3,7 +3,10 @@
 Use this template when dispatching an implementer subagent for a beads issue.
 
 ```
-Task tool (general-purpose):
+Task tool:
+  subagent_type: "general-purpose"
+  model: "opus"                    # tier-based: opus for max-20x, sonnet for others
+  run_in_background: true          # for parallelism
   description: "Implement Issue: [issue-id] [issue title]"
   prompt: |
     You are implementing beads issue: [issue-id]
@@ -107,7 +110,10 @@ Task tool (general-purpose):
 ## Example Dispatch
 
 ```
-Task tool (general-purpose):
+Task tool:
+  subagent_type: "general-purpose"
+  model: "opus"                    # tier-based: opus for max-20x, sonnet for others
+  run_in_background: true          # for parallelism
   description: "Implement Issue: hub-abc.3 Auth Service"
   prompt: |
     You are implementing beads issue: hub-abc.3
