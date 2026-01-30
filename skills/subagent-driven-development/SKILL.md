@@ -348,6 +348,48 @@ while task_ids:
 - **Immediate review dispatch** - Start reviews as soon as implementations complete, even while other implementations are running
 - **Better throughput** - Wave N+1 reviews can overlap with Wave N implementations completing
 
+### Review Pipeline Parallelism
+
+Reviews for DIFFERENT tasks can run in parallel:
+
+```
+Timeline (3 tasks, max parallelism):
+─────────────────────────────────────────────────────────────────
+Task A: [implement]────[spec-A]────[code-A]────→ close
+Task B:    [implement]────[spec-B]────[code-B]────→ close
+Task C:       [implement]────[spec-C]────[code-C]──→ close
+                       ↑         ↑
+                       └─parallel─┘
+```
+
+**Rules:**
+- Spec review for A || Spec review for B ✅
+- Code review A must wait for spec review A ❌ (sequential)
+- Code review for A || Code review for B ✅
+
+**Event-driven dispatch:**
+```python
+on_implementer_complete(task_id, result):
+    # Immediately dispatch spec review (background)
+    spec_task = Task(
+        model=tier_spec_model,
+        run_in_background=True,
+        description=f"Spec review: {task_id}",
+        ...
+    )
+    pending_spec_reviews.add(spec_task)
+
+on_spec_review_pass(task_id, result):
+    # Immediately dispatch code review (background)
+    code_task = Task(
+        subagent_type="superpowers:code-reviewer",
+        model=tier_code_model,
+        run_in_background=True,
+        ...
+    )
+    pending_code_reviews.add(code_task)
+```
+
 ## Wave Summary (Cross-Wave Context)
 
 **After each wave completes, post a summary comment to the epic:**
