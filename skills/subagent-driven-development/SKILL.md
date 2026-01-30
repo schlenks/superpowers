@@ -181,6 +181,35 @@ Current epic: hub-abc
 Filter to: hub-abc.1, hub-abc.2 (ignore hub-xyz.1)
 ```
 
+## Dispatch Decision
+
+When a task becomes ready, determine which agent to dispatch:
+
+```python
+def get_agent_for_task(task):
+    title_lower = task.title.lower()
+    if "verification" in title_lower or "verify" in title_lower:
+        return "superpowers:epic-verifier"
+    else:
+        return "general-purpose"
+```
+
+```
+Task becomes ready
+       │
+       ▼
+Is verification task?
+    yes/ \no
+      /   \
+Dispatch     Dispatch
+epic-verifier implementer
+```
+
+**Why this works:**
+- plan2beads already creates verification task with proper checklist
+- finishing-a-development-branch already checks verification task is closed
+- This fix ensures verification is done by dedicated agent, not rushed implementer
+
 ## File Conflict Detection (Task-Tracked)
 
 **Before dispatching each wave, create a conflict verification task:**
