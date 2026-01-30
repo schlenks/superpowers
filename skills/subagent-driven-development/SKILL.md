@@ -51,6 +51,8 @@ Before dispatching, determine model selection strategy.
 | max-5x | sonnet | haiku | sonnet | sonnet |
 | pro/api | sonnet | haiku | haiku | sonnet |
 
+Note: Epic Verifier uses sonnet minimum (opus for max-20x) because verification is comprehensive and must catch subtle issues. See `skills/epic-verifier/SKILL.md`.
+
 **Store selection** for the session - don't ask again per wave.
 
 **Prerequisites:**
