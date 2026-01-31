@@ -81,8 +81,22 @@ TaskCreate: "Verify: tests pass"
     max_attempts: 3
 
 // RUN the command, capture output
-// ONLY if passes: TaskUpdate status=completed
-// Then and only then: "Tests pass (34/34, exit 0)"
+
+// IF PASSES:
+//   TaskUpdate status=completed
+//   "Tests pass (34/34, exit 0)"
+
+// IF FAILS (e.g., 2 failures):
+//   Create gap-fix task:
+//     TaskCreate: "Fix: 2 test failures in auth module"
+//       metadata: { triggered_by: "verify-1", gap_closure_attempt: 1 }
+//   Create re-verification task (blocked):
+//     TaskCreate: "Re-verify: tests pass"
+//       blockedBy: [gap-fix-task-id]
+//       metadata: { attempt: 2, max_attempts: 3 }
+//   Complete fix → re-verification unblocks → run again
+//   IF still fails AND attempt < 3 → repeat loop
+//   IF attempt >= 3 → escalate to human
 ```
 
 **Why this matters:** TaskList exposes unverified completion claims. If you claim "done" without a completed verification task, the lack of evidence is visible.
