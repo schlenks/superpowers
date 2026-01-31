@@ -174,7 +174,25 @@ Task tool:
 
     - hub-abc.1: User Model (apps/api/src/models/user.model.ts exists)
 
-    ## Context
+    ## Established Conventions (from previous waves)
+
+    - Using uuid v4 for all entity IDs
+    - camelCase for JSON field names
+    - Async/await over raw promises
+
+    ## Epic Context (Optional)
+
+    Build a complete authentication system for the API.
+
+    **Key Decisions:**
+    - JWT for stateless auth with 24h expiry
+    - Bcrypt for password hashing
+    - Refresh tokens stored in database
+
+    **Why This Task Matters:**
+    Auth service is the core of user authentication. Login endpoint (hub-abc.4) depends on this.
+
+    ## Additional Context
 
     This is part of the Auth System epic. The User model is complete.
     This service will be used by the Login endpoint (hub-abc.4).
