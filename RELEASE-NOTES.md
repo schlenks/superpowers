@@ -1,5 +1,41 @@
 # Superpowers Release Notes
 
+## v4.1.2 (2026-01-31) - Beads Fork
+
+### Feature: Visual Verification for Frontend Code
+
+Automatic browser-based verification for frontend changes, integrated with the gap closure loop.
+
+**Problem:** Verification relied on build/test passing, but frontend bugs often only surface when rendered in a browser. "Build passes" and "tests pass" don't prove the UI actually renders correctly.
+
+**Solution:** Added visual verification step to `verification-before-completion` that automatically runs when frontend files are modified and browser tools are available.
+
+**Automatic Triggering (all conditions required):**
+- Browser tools available (`superpowers-chrome` or Playwright MCP)
+- Frontend files changed (see patterns below)
+- Dev server running (ports: 3000, 5173, 4200, 8080)
+
+**Frontend File Patterns:**
+- Extensions: `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.css`, `*.scss`, `*.module.css`
+- Directories: `components/`, `pages/`, `app/`, `views/`, `layouts/`, `hooks/`, `styles/`, `theme/`
+- Config: `tailwind.config.*`, `postcss.config.*`
+- Excludes: Test files (`*.test.*`, `*.spec.*`), backend (`api/`, `server/`, `db/`)
+
+**Smoke Test Procedure:**
+1. Infer URL from changed files (page routes → path, components → trace to page, fallback → `/`)
+2. Navigate to dev server
+3. Check console for exceptions or React errors (fail if found)
+4. Verify elements render (page not blank, no error boundaries)
+5. Capture screenshot as evidence (save to `temp/`)
+
+**Failure Handling:**
+Visual verification failures trigger the same gap closure loop as other verifications—create fix task, re-verify, max 3 attempts, then escalate.
+
+**Files Modified:**
+- `skills/verification-before-completion/SKILL.md` - Visual Verification section, Common Failures table, Key Patterns example
+
+---
+
 ## v4.1.1 (2026-01-31) - Beads Fork
 
 ### Feature: Gap Closure Loop
