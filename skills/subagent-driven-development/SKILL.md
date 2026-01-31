@@ -89,7 +89,7 @@ Extract from epic comments:
 
 ```bash
 # Get wave summary comments
-bd comments list <epic-id> --format json | jq -r '
+bd comments <epic-id> --json | jq -r '
   .[] | select(.text | contains("Wave")) | .text
 ' | tail -3
 ```
